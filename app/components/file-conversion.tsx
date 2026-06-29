@@ -671,7 +671,7 @@ export function FileConversion() {
       abortRef.current = null;
       setConverting(false);
     }
-  }, [fileList, addLog]);
+  }, [addLog]);
 
   const handleDownload = useCallback(
     (item: FileItem) => {
