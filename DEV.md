@@ -20,7 +20,7 @@ yarn start
 - 启动 MarkItDown 服务
 
 ```bash
-cd ~/Projects/Website/NextChatReadFile
+cd ~/Projects/Website/WengChatReadFile
 conda activate personal-website
 uvicorn main:app --reload --port 8000
 ```
@@ -45,13 +45,13 @@ sudo docker compose -f docker-compose.yml down
 - 编译
 
 ```bash
-docker build -t na2cucl4/nextchat:v2.18.0 .
+docker build -t na2cucl4/wengchat:v2.19.2 .
 ```
 
 - 重命名
 
 ```bash
-docker tag na2cucl4/nextchat:v2.18.0 na2cucl4/nextchat:latest
+docker tag na2cucl4/wengchat:v2.19.2 na2cucl4/wengchat:latest
 ```
 
 - 登录 Docker Hub
@@ -63,5 +63,6 @@ docker login
 - 发布
 
 ```bash
-docker push na2cucl4/nextchat:latest
+docker push na2cucl4/wengchat:v2.19.2
+docker push na2cucl4/wengchat:latest
 ```

@@ -13,8 +13,8 @@ import { showToast } from "../components/ui-lib";
 import Locale from "../locales";
 import { createSyncClient, ProviderType } from "../utils/cloud";
 
-const SYNC_LOCK_NAME = "nextchat-sync-lock";
-const SYNC_LOCK_KEY = "nextchat-sync-lock-owner";
+const SYNC_LOCK_NAME = "wengchat-sync-lock";
+const SYNC_LOCK_KEY = "wengchat-sync-lock-owner";
 const SYNC_LOCK_TTL = 5 * 60 * 1000;
 const SYNC_LOCK_OWNER = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 

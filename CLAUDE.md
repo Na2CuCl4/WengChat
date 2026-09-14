@@ -60,7 +60,7 @@ Server routes live in `app/api/`:
 - `auth.ts` — authentication endpoints
 - `proxy.ts` — proxy endpoint
 - `webdav/` and `upstash/` — cloud sync backends
-- `read_file/` — file reading service proxy (used by `nextchat-readfile` container)
+- `read_file/` — file reading service proxy (used by `wengchat-readfile` container)
 - `artifacts/` — artifacts serving
 - `health/` — health check endpoint
 - `stability.ts` — Stability AI (image generation) endpoint
@@ -141,7 +141,7 @@ AZURE_API_VERSION=2024-12-01-preview
 ## Docker
 
 The `docker-compose.yml` runs two services:
-- `nextchat` — the main app (port 3001 locally)
-- `nextchat-readfile` — file reading sidecar service (internal port 8000, accessed via `FILE_READING_SERVER` env var)
+- `wengchat` — the main app (port 3001 locally)
+- `wengchat-readfile` — file reading sidecar service (internal port 8000, accessed via `FILE_READING_SERVER` env var)
 
-The production image is `na2cucl4/nextchat:latest`.
+The production image is `na2cucl4/wengchat:latest`.

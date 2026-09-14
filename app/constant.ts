@@ -1,7 +1,7 @@
 export const OWNER = "Na2CuCl4";
-export const REPO = "NextChat";
+export const REPO = "WengChat";
 export const REPO_URL = `https://github.com/${OWNER}/${REPO}`;
-export const PLUGINS_REPO_URL = `https://github.com/ChatGPTNextWeb/NextChat-Awesome-Plugins`;
+export const PLUGINS_REPO_URL = `https://github.com/Na2CuCl4/WengChat-Awesome-Plugins`;
 export const ISSUE_URL = `https://github.com/${OWNER}/${REPO}/issues`;
 export const UPDATE_URL = `${REPO_URL}#keep-updated`;
 export const RELEASE_URL = `${REPO_URL}/releases`;
@@ -90,8 +90,8 @@ export enum FileName {
 }
 
 export enum StoreKey {
-  Chat = "chat-next-web-store",
-  Plugin = "chat-next-web-plugin",
+  Chat = "wengchat-store",
+  Plugin = "wengchat-plugin",
   Access = "access-control",
   Config = "app-config",
   Mask = "mask-store",
@@ -112,7 +112,7 @@ export const ACCESS_CODE_PREFIX = "nk-";
 export const LAST_INPUT_KEY = "last-input";
 export const UNFINISHED_INPUT = (id: string) => "unfinished-input-" + id;
 
-export const STORAGE_KEY = "chatgpt-next-web";
+export const STORAGE_KEY = "wengchat";
 
 export const REQUEST_TIMEOUT_MS = 600000;
 
@@ -382,7 +382,7 @@ You are an AI assistant with access to system tools. Your role is to help users 
   "params": {
     "name": "write_file",
     "arguments": {
-      "path": "/Users/river/dev/nextchat/test/joke.txt",
+      "path": "/Users/river/dev/wengchat/test/joke.txt",
       "content": "为什么数学书总是感到忧伤？因为它有太多的问题。"
     }
   }
@@ -395,7 +395,7 @@ You are an AI assistant with access to system tools. Your role is to help users 
    {
       "method": "write_file",
       "params": {
-        "path": "NextChat_Information.txt",
+        "path": "WengChat_Information.txt",
         "content": "1"
     }
    }

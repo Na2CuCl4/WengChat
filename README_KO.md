@@ -1,12 +1,12 @@
 <div align="center">
 
-# ![NextChat](docs/images/icon.svg) NextChat
+# ![WengChat](docs/images/icon.svg) WengChat
 
 [English](./README.md) / [简体中文](./README_CN.md) / [日本語](./README_JP.md) / 한국어
 
 ✨ 가볍고 빠른 AI 어시스턴트, Claude, DeepSeek, GPT & Gemini Pro 지원.
 
-[<img src="https://zeabur.com/button.svg" alt="Deploy on Zeabur" height="30">](https://zeabur.com/templates/ZBUEFA) [<img src="https://vercel.com/button" alt="Deploy on Vercel" height="30">](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FNa2CuCl4%2FNextChat&env=OPENAI_API_KEY&env=CODE&project-name=nextchat&repository-name=NextChat) [<img src="https://gitpod.io/button/open-in-gitpod.svg" alt="Open in Gitpod" height="30">](https://gitpod.io/#https://github.com/Na2CuCl4/NextChat)
+[<img src="https://zeabur.com/button.svg" alt="Deploy on Zeabur" height="30">](https://zeabur.com/templates/ZBUEFA) [<img src="https://vercel.com/button" alt="Deploy on Vercel" height="30">](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FNa2CuCl4%2FWengChat&env=OPENAI_API_KEY&env=CODE&project-name=wengchat&repository-name=WengChat) [<img src="https://gitpod.io/button/open-in-gitpod.svg" alt="Open in Gitpod" height="30">](https://gitpod.io/#https://github.com/Na2CuCl4/WengChat)
 
 </div>
 
@@ -21,7 +21,7 @@
 ## 주요 기능
 
 - **무료 원클릭 배포**: Vercel에서 1분 이내 배포
-- **가벼운 클라이언트**: Linux/Windows/MacOS 약 5MB, [지금 다운로드](https://github.com/Na2CuCl4/NextChat/releases)
+- **가벼운 클라이언트**: Linux/Windows/MacOS 약 5MB, [지금 다운로드](https://github.com/Na2CuCl4/WengChat/releases)
 - **자체 LLM 호환**: [RWKV-Runner](https://github.com/josStorer/RWKV-Runner) 및 [LocalAI](https://github.com/go-skynet/LocalAI)와 완벽 호환
 - **개인정보 보호**: 모든 데이터를 브라우저 로컬에 저장
 - **Markdown 지원**: LaTeX, Mermaid, 코드 하이라이팅 등
@@ -40,6 +40,7 @@
 
 ## 업데이트 소식
 
+- **v2.19.2**: WengChat으로 이름을 통일하고 배포 식별자를 이전
 - **v2.19.1**: "전체 삭제" 버튼이 변환 로그를 초기화하지 않는 문제 수정, 변환 실패 시 무한 재시도 루프 수정, 전체 다운로드를 zip 패키지로 변경, MinerU 엔진 최신 API 업데이트 (백엔드 이름, OCR 언어, 파싱 정밀도 설정)
 - **v2.19.0**: 파일 변환 페이지 (MarkItDown & MinerU 엔진), Docker Compose profiles (readfile, mineru), docker-build.sh 스크립트
 - **v2.18.0**: OpenAI Responses 형식 `/v1/responses`, GPT-5 시리즈 `reasoning_effort` / `response_format` / `verbosity`, image-to-image 생성, 업로드 15장으로 확대
@@ -47,7 +48,7 @@
 - **v2.16.2**: 파일 업로드 지원, 자동 업데이트 감지, 다국어 개선, 서버 응답 시간 10분으로 연장
 - **v2.15.8**: 실시간 채팅 지원 [#5672](https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web/issues/5672)
 - **v2.15.4**: Tauri LLM API 호출, 보안 강화 [#5379](https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web/issues/5379)
-- **v2.15.0**: 플러그인 지원! [NextChat-Awesome-Plugins](https://github.com/ChatGPTNextWeb/NextChat-Awesome-Plugins)
+- **v2.15.0**: 플러그인 지원! [WengChat-Awesome-Plugins](https://github.com/Na2CuCl4/WengChat-Awesome-Plugins)
 - **v2.14.0**: Artifacts & Stable Diffusion 지원
 - **v2.10.1**: Google Gemini Pro 모델 지원
 - **v2.9.11**: Azure 엔드포인트 지원
@@ -76,7 +77,7 @@
 ## 시작하기
 
 1. [OpenAI API 키](https://platform.openai.com/account/api-keys) 발급
-2. [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FNa2CuCl4%2FNextChat&env=OPENAI_API_KEY&env=CODE&project-name=nextchat&repository-name=NextChat) 클릭, `CODE`를 페이지 비밀번호로 설정
+2. [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FNa2CuCl4%2FWengChat&env=OPENAI_API_KEY&env=CODE&project-name=wengchat&repository-name=WengChat) 클릭, `CODE`를 페이지 비밀번호로 설정
 3. Enjoy :)
 
 ## 배포
@@ -85,8 +86,8 @@
 
 ```shell
 # 저장소 클론
-git clone https://github.com/Na2CuCl4/NextChat.git
-cd NextChat
+git clone https://github.com/Na2CuCl4/WengChat.git
+cd WengChat
 
 # .env 파일 생성 및 설정
 cp .env.template .env
@@ -104,12 +105,12 @@ docker compose --profile readfile --profile mineru up -d  # 둘 다
 ### Docker
 
 ```shell
-docker pull na2cucl4/nextchat:latest
+docker pull na2cucl4/wengchat:latest
 
 docker run -d -p 3000:3000 \
    -e OPENAI_API_KEY=sk-xxxx \
    -e CODE=비밀번호 \
-   na2cucl4/nextchat:latest
+   na2cucl4/wengchat:latest
 ```
 
 프록시 사용:
@@ -119,7 +120,7 @@ docker run -d -p 3000:3000 \
    -e OPENAI_API_KEY=sk-xxxx \
    -e CODE=비밀번호 \
    -e PROXY_URL=http://localhost:7890 \
-   na2cucl4/nextchat:latest
+   na2cucl4/wengchat:latest
 ```
 
 프록시 인증이 필요한 경우:
@@ -135,13 +136,13 @@ docker run -d -p 3000:3000 \
    -e OPENAI_API_KEY=sk-xxxx \
    -e CODE=비밀번호 \
    -e ENABLE_MCP=true \
-   na2cucl4/nextchat:latest
+   na2cucl4/wengchat:latest
 ```
 
 ### Shell
 
 ```shell
-bash <(curl -s https://raw.githubusercontent.com/Na2CuCl4/NextChat/main/scripts/setup.sh)
+bash <(curl -s https://raw.githubusercontent.com/Na2CuCl4/WengChat/main/scripts/setup.sh)
 ```
 
 ## 최신 상태 유지
@@ -174,7 +175,7 @@ Star 또는 Watch로 릴리스 알림을 받아보세요.
 
 NodeJS ≥ 18, Docker ≥ 20
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/Na2CuCl4/NextChat)
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/Na2CuCl4/WengChat)
 
 프로젝트 루트에 `.env` 파일 생성:
 
@@ -419,7 +420,7 @@ ByteDance: `modelName@bytedance=deploymentName`
 
 #### `FILE_READING_SERVER` (선택)
 
-> 예시: `http://nextchat-readfile:8000`
+> 예시: `http://wengchat-readfile:8000`
 
 파일 읽기 사이드카 서비스 URL (업로드된 문서 파싱에 사용).
 
@@ -476,8 +477,8 @@ MinerU API 서비스 URL (PDF/이미지 변환에 사용).
 
 ### 기여자
 
-<a href="https://github.com/Na2CuCl4/NextChat/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=Na2CuCl4/NextChat" />
+<a href="https://github.com/Na2CuCl4/WengChat/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Na2CuCl4/WengChat" />
 </a>
 
 ## 라이선스

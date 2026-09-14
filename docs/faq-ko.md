@@ -23,7 +23,7 @@ Docker 버전은 사실상 안정된 버전과 같습니다. latest Docker는 �
 ## Vercel 환경 변수를 어떻게 수정하나요?
 
 - Vercel의 제어판 페이지로 이동합니다.
-- NextChat 프로젝트를 선택합니다.
+- WengChat 프로젝트를 선택합니다.
 - 페이지 상단의 Settings 옵션을 클릭합니다.
 - 사이드바의 Environment Variables 옵션을 찾습니다.
 - 해당 값을 수정합니다.

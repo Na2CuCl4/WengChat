@@ -1,35 +1,35 @@
 networks:
-  nextchat-network:
+  wengchat-network:
 
 services:
-  nextchat:
-    image: na2cucl4/nextchat:latest
-    container_name: nextchat
+  wengchat:
+    image: na2cucl4/wengchat:latest
+    container_name: wengchat
     restart: always
     ports:
       - 127.0.0.1:3001:3000
     networks:
-      - nextchat-network
+      - wengchat-network
     environment:
       BASE_URL: ${BASE_URL}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       CODE: ${CODE}
       CUSTOM_MODELS: ${CUSTOM_MODELS}
       DEFAULT_MODEL: ${DEFAULT_MODEL}
-      FILE_READING_SERVER: http://nextchat-readfile:8000
+      FILE_READING_SERVER: http://wengchat-readfile:8000
       HIDE_USER_API_KEY: 1
       MINERU_SERVER: http://mineru-api:8000
 
-  nextchat-readfile:
-    image: na2cucl4/nextchat-readfile:latest
-    container_name: nextchat-readfile
+  wengchat-readfile:
+    image: na2cucl4/wengchat-readfile:latest
+    container_name: wengchat-readfile
     restart: always
     profiles:
       - readfile
     expose:
       - 8000
     networks:
-      - nextchat-network
+      - wengchat-network
     environment:
       BASE_URL: ${BASE_URL}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
@@ -48,7 +48,7 @@ services:
     expose:
       - 8000
     networks:
-      - nextchat-network
+      - wengchat-network
     environment:
       MINERU_MODEL_SOURCE: local
     entrypoint: mineru-api

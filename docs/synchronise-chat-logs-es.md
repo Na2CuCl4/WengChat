@@ -1,7 +1,7 @@
 # Sincronizzare i Log delle Chat con UpStash
 ## Prerequisiti
 - Account GitHub
-- Server ChatGPT-Next-Web di propria configurazione
+- Server WengChat di propria configurazione
 - [UpStash](https://upstash.com)
 
 ## Per iniziare
