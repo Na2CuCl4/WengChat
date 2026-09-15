@@ -205,6 +205,7 @@ export async function uploadFile(
   }
 
   if (fc.engine === "mineru") {
+    body.append("minerUTier", fc.minerUTier ?? "standard");
     body.append("minerUBackend", fc.minerUBackend);
     body.append("parseMethod", fc.parseMethod);
     body.append("ocrLanguage", fc.ocrLanguage);

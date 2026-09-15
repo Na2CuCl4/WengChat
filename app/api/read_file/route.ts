@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSideConfig } from "@/app/config/server";
 import md5 from "spark-md5";
 import { ACCESS_CODE_PREFIX } from "@/app/constant";
+import { parseMinerU } from "@/app/api/mineru";
 
 export async function POST(req: NextRequest) {
   const serverConfig = getServerSideConfig();
@@ -40,97 +41,28 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const outForm = new FormData();
-      outForm.append("files", file);
-
-      const langList = inForm.get("ocrLanguage");
-      if (langList) outForm.append("lang_list", langList);
-
-      const backend = inForm.get("minerUBackend");
-      if (backend) outForm.append("backend", backend);
-
-      const parseMethod = inForm.get("parseMethod");
-      if (parseMethod) outForm.append("parse_method", parseMethod);
-
-      const tableEnable = inForm.get("enableTableRecognition");
-      if (tableEnable) outForm.append("table_enable", tableEnable);
-
-      const formulaEnable = inForm.get("enableInlineFormulaRecognition");
-      if (formulaEnable) outForm.append("formula_enable", formulaEnable);
-
-      const imageAnalysis = inForm.get("enableImageAnalysis");
-      if (imageAnalysis) outForm.append("image_analysis", imageAnalysis);
-
-      const effort = inForm.get("effort");
-      if (effort) outForm.append("effort", effort);
-
-      const returnImages = inForm.get("return_images");
-      if (returnImages) outForm.append("return_images", returnImages);
-
-      const responseFormatZip = inForm.get("response_format_zip");
-      if (responseFormatZip)
-        outForm.append("response_format_zip", responseFormatZip);
-
-      const maxPages = inForm.get("maxPages");
-      if (maxPages) outForm.append("end_page_id", maxPages);
-
-      const res = await fetch(`${serverConfig.minerUServer}/file_parse`, {
-        method: "POST",
-        body: outForm,
-      });
-
-      if (!res.ok) {
-        const json = await res.json().catch(() => null);
-        return NextResponse.json(
-          {
-            error:
-              json?.error ??
-              json?.detail ??
-              json?.msg ??
-              "MinerU conversion failed",
-          },
-          { status: 502 },
+      try {
+        const result = await parseMinerU(
+          serverConfig.minerUServer,
+          file,
+          inForm,
+          req.signal,
         );
-      }
-
-      // MinerU may return JSON (task-result format with
-      // results.{file_name}.md_content) or binary (ZIP).
-      const ct = (res.headers.get("content-type") || "").toLowerCase();
-
-      if (ct.includes("application/json") || ct.includes("text/")) {
-        const json = await res.json();
-
-        // Extract markdown content: results.{file_names[0]}.md_content
-        const fileNames: string[] = json?.file_names ?? [];
-        const firstFile = fileNames[0] ?? "";
-        const mdContent: string | undefined =
-          json?.results?.[firstFile]?.md_content;
-
-        if (mdContent) {
-          return NextResponse.json({ data: mdContent });
+        if ("markdown" in result) {
+          return NextResponse.json({ data: result.markdown });
         }
-
-        // If results structure not found, still an error
-        return NextResponse.json(
-          {
-            error:
-              json?.error ??
-              json?.msg ??
-              json?.detail ??
-              "MinerU returned unexpected response structure",
+        return new NextResponse(result.zip, {
+          headers: {
+            "Content-Type": "application/zip",
+            "Content-Disposition": 'attachment; filename="result.zip"',
           },
+        });
+      } catch (err) {
+        return NextResponse.json(
+          { error: (err as Error).message },
           { status: 502 },
         );
       }
-
-      // Binary response (e.g. ZIP) — pass through
-      const blob = await res.blob();
-      return new NextResponse(blob, {
-        headers: {
-          "Content-Type": "application/zip",
-          "Content-Disposition": 'attachment; filename="result.zip"',
-        },
-      });
     }
 
     // ── MarkItDown path (default) ─────────────────────────────────

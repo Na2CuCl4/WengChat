@@ -27,6 +27,7 @@ import { uploadFile } from "../utils/chat";
 
 type FileConversionEngine = "markitdown" | "mineru";
 type MinerUBackend = "pipeline" | "vlm-engine" | "hybrid-engine";
+type MinerUTier = "flash" | "basic" | "standard" | "advanced";
 type ParseMethod = "auto" | "txt" | "ocr";
 type OcrLanguage =
   | "ch"
@@ -172,36 +173,47 @@ function MarkItDownSettings() {
 interface HealthInfo {
   status: string;
   version: string;
+  api_version?: "v0" | "v1";
+  tiers?: { id: MinerUTier; description: string }[];
   queued_tasks?: number;
-  processing_tasks: number;
-  completed_tasks: number;
-  failed_tasks: number;
+  processing_tasks?: number;
+  completed_tasks?: number;
+  failed_tasks?: number;
 }
 
-function HealthCheckSection({ engine }: { engine: FileConversionEngine }) {
+function HealthCheckSection({
+  engine,
+  onHealthChange,
+}: {
+  engine: FileConversionEngine;
+  onHealthChange?: (health: HealthInfo | null) => void;
+}) {
   const [health, setHealth] = useState<HealthInfo | null>(null);
   const [checking, setChecking] = useState(false);
-  const [healthError, setHealthError] = useState(false);
+  const [healthError, setHealthError] = useState("");
 
   const handleCheckHealth = useCallback(async () => {
     setChecking(true);
-    setHealthError(false);
+    setHealthError("");
+    setHealth(null);
+    onHealthChange?.(null);
     try {
       const res = await fetch(`/api/health?engine=${engine}`);
       const json = await res.json().catch(() => null);
       if (res.ok && json?.status) {
         setHealth(json);
+        onHealthChange?.(json);
       } else {
-        setHealthError(true);
-        setHealth(null);
+        setHealthError(
+          json?.error ?? Locale.FileConversion.HealthCheck.Unavailable,
+        );
       }
     } catch {
-      setHealthError(true);
-      setHealth(null);
+      setHealthError(Locale.FileConversion.HealthCheck.Unavailable);
     } finally {
       setChecking(false);
     }
-  }, [engine]);
+  }, [engine, onHealthChange]);
 
   useEffect(() => {
     handleCheckHealth();
@@ -212,13 +224,13 @@ function HealthCheckSection({ engine }: { engine: FileConversionEngine }) {
         Locale.FileConversion.HealthCheck.Queueing
       }: ${health.queued_tasks ?? "-"}  |  ${
         Locale.FileConversion.HealthCheck.Processing
-      }: ${health.processing_tasks}  |  ${
+      }: ${health.processing_tasks ?? "-"}  |  ${
         Locale.FileConversion.HealthCheck.Completed
-      }: ${health.completed_tasks}  |  ${
+      }: ${health.completed_tasks ?? "-"}  |  ${
         Locale.FileConversion.HealthCheck.Failed
-      }: ${health.failed_tasks}`
+      }: ${health.failed_tasks ?? "-"}`
     : healthError
-    ? Locale.FileConversion.HealthCheck.Unavailable
+    ? healthError
     : "";
 
   return (
@@ -243,170 +255,239 @@ function HealthCheckSection({ engine }: { engine: FileConversionEngine }) {
 function MinerUSettings() {
   const config = useAppConfig();
   const fc = config.fileConversionConfig;
+  const [health, setHealth] = useState<HealthInfo | null>(null);
+  const handleHealthChange = useCallback(
+    (value: HealthInfo | null) => setHealth(value),
+    [],
+  );
+  const tiers = health?.tiers ?? [];
+  const selectedTier = tiers.some((tier) => tier.id === fc.minerUTier)
+    ? fc.minerUTier
+    : (["standard", "basic", "advanced", "flash"] as MinerUTier[]).find((id) =>
+        tiers.some((tier) => tier.id === id),
+      );
+
+  useEffect(() => {
+    if (
+      health?.api_version === "v1" &&
+      selectedTier &&
+      fc.minerUTier !== selectedTier
+    ) {
+      config.update((c) => (c.fileConversionConfig.minerUTier = selectedTier));
+    }
+  }, [config, fc.minerUTier, health?.api_version, selectedTier]);
 
   return (
     <>
-      <HealthCheckSection engine="mineru" />
+      <HealthCheckSection engine="mineru" onHealthChange={handleHealthChange} />
 
-      <ListItem
-        title={Locale.FileConversion.MinerU.ParseBackend.Title}
-        subTitle={MINERU_BACKEND[fc.minerUBackend]}
-      >
-        <Select
-          aria-label={Locale.FileConversion.MinerU.ParseBackend.Title}
-          value={fc.minerUBackend}
-          onChange={(e) => {
-            const val = e.target.value as MinerUBackend;
-            config.update((c) => (c.fileConversionConfig.minerUBackend = val));
-          }}
-        >
-          <option value="pipeline">
-            {Locale.FileConversion.MinerU.ParseBackend.Pipeline}
-          </option>
-          <option value="vlm-engine">
-            {Locale.FileConversion.MinerU.ParseBackend.VlmEngine}
-          </option>
-          <option value="hybrid-engine">
-            {Locale.FileConversion.MinerU.ParseBackend.HybridEngine}
-          </option>
-        </Select>
-      </ListItem>
+      {health?.api_version === "v0" && (
+        <>
+          <ListItem
+            title={Locale.FileConversion.MinerU.ParseBackend.Title}
+            subTitle={MINERU_BACKEND[fc.minerUBackend]}
+          >
+            <Select
+              aria-label={Locale.FileConversion.MinerU.ParseBackend.Title}
+              value={fc.minerUBackend}
+              onChange={(e) => {
+                const val = e.target.value as MinerUBackend;
+                config.update(
+                  (c) => (c.fileConversionConfig.minerUBackend = val),
+                );
+              }}
+            >
+              <option value="pipeline">
+                {Locale.FileConversion.MinerU.ParseBackend.Pipeline}
+              </option>
+              <option value="vlm-engine">
+                {Locale.FileConversion.MinerU.ParseBackend.VlmEngine}
+              </option>
+              <option value="hybrid-engine">
+                {Locale.FileConversion.MinerU.ParseBackend.HybridEngine}
+              </option>
+            </Select>
+          </ListItem>
 
-      {fc.minerUBackend === "hybrid-engine" && (
+          {fc.minerUBackend === "hybrid-engine" && (
+            <ListItem
+              title={Locale.FileConversion.MinerU.Effort.Title}
+              subTitle={EFFORT_OPTIONS.find((o) => o.value === fc.effort)?.desc}
+            >
+              <Select
+                aria-label={Locale.FileConversion.MinerU.Effort.Title}
+                value={fc.effort}
+                onChange={(e) => {
+                  const val = e.target.value as "medium" | "high";
+                  config.update((c) => (c.fileConversionConfig.effort = val));
+                }}
+              >
+                {EFFORT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.value}
+                  </option>
+                ))}
+              </Select>
+            </ListItem>
+          )}
+        </>
+      )}
+
+      {health?.api_version === "v1" && selectedTier && (
         <ListItem
           title={Locale.FileConversion.MinerU.Effort.Title}
-          subTitle={EFFORT_OPTIONS.find((o) => o.value === fc.effort)?.desc}
+          subTitle={tiers.find((tier) => tier.id === selectedTier)?.description}
         >
           <Select
             aria-label={Locale.FileConversion.MinerU.Effort.Title}
-            value={fc.effort}
+            value={selectedTier}
             onChange={(e) => {
-              const val = e.target.value as "medium" | "high";
-              config.update((c) => (c.fileConversionConfig.effort = val));
+              const val = e.target.value as MinerUTier;
+              config.update((c) => (c.fileConversionConfig.minerUTier = val));
             }}
           >
-            {EFFORT_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.value}
+            {tiers.map((tier) => (
+              <option key={tier.id} value={tier.id}>
+                {tier.id}
               </option>
             ))}
           </Select>
         </ListItem>
       )}
 
-      <ListItem title={Locale.FileConversion.MinerU.MaxPages.Title}>
-        <InputRange
-          aria={Locale.FileConversion.MinerU.MaxPages.Title}
-          title={`${fc.maxPages}`}
-          value={fc.maxPages}
-          min="1"
-          max="1000"
-          step="1"
-          onChange={(e) => {
-            const val = Number(e.target.value);
-            config.update((c) => (c.fileConversionConfig.maxPages = val));
-          }}
-        />
-      </ListItem>
+      {health?.api_version && (
+        <ListItem title={Locale.FileConversion.MinerU.MaxPages.Title}>
+          <InputRange
+            aria={Locale.FileConversion.MinerU.MaxPages.Title}
+            title={`${fc.maxPages}`}
+            value={fc.maxPages}
+            min="1"
+            max="1000"
+            step="1"
+            onChange={(e) => {
+              const val = Number(e.target.value);
+              config.update((c) => (c.fileConversionConfig.maxPages = val));
+            }}
+          />
+        </ListItem>
+      )}
 
-      <ListItem
-        title={Locale.FileConversion.MinerU.EnableTableRecognition.Title}
-        subTitle={Locale.FileConversion.MinerU.EnableTableRecognition.Desc}
-      >
-        <input
-          aria-label={Locale.FileConversion.MinerU.EnableTableRecognition.Title}
-          type="checkbox"
-          checked={fc.enableTableRecognition}
-          onChange={(e) => {
-            const checked = e.target.checked;
-            config.update(
-              (c) => (c.fileConversionConfig.enableTableRecognition = checked),
-            );
-          }}
-        />
-      </ListItem>
+      {health?.api_version === "v0" && (
+        <>
+          <ListItem
+            title={Locale.FileConversion.MinerU.EnableTableRecognition.Title}
+            subTitle={Locale.FileConversion.MinerU.EnableTableRecognition.Desc}
+          >
+            <input
+              aria-label={
+                Locale.FileConversion.MinerU.EnableTableRecognition.Title
+              }
+              type="checkbox"
+              checked={fc.enableTableRecognition}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                config.update(
+                  (c) =>
+                    (c.fileConversionConfig.enableTableRecognition = checked),
+                );
+              }}
+            />
+          </ListItem>
 
-      <ListItem
-        title={
-          Locale.FileConversion.MinerU.EnableInlineFormulaRecognition.Title
-        }
-        subTitle={
-          Locale.FileConversion.MinerU.EnableInlineFormulaRecognition.Desc
-        }
-      >
-        <input
-          aria-label={
-            Locale.FileConversion.MinerU.EnableInlineFormulaRecognition.Title
-          }
-          type="checkbox"
-          checked={fc.enableInlineFormulaRecognition}
-          onChange={(e) => {
-            const checked = e.target.checked;
-            config.update(
-              (c) =>
-                (c.fileConversionConfig.enableInlineFormulaRecognition =
-                  checked),
-            );
-          }}
-        />
-      </ListItem>
+          <ListItem
+            title={
+              Locale.FileConversion.MinerU.EnableInlineFormulaRecognition.Title
+            }
+            subTitle={
+              Locale.FileConversion.MinerU.EnableInlineFormulaRecognition.Desc
+            }
+          >
+            <input
+              aria-label={
+                Locale.FileConversion.MinerU.EnableInlineFormulaRecognition
+                  .Title
+              }
+              type="checkbox"
+              checked={fc.enableInlineFormulaRecognition}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                config.update(
+                  (c) =>
+                    (c.fileConversionConfig.enableInlineFormulaRecognition =
+                      checked),
+                );
+              }}
+            />
+          </ListItem>
 
-      <ListItem
-        title={Locale.FileConversion.MinerU.EnableImageAnalysis.Title}
-        subTitle={Locale.FileConversion.MinerU.EnableImageAnalysis.Desc}
-      >
-        <input
-          aria-label={Locale.FileConversion.MinerU.EnableImageAnalysis.Title}
-          type="checkbox"
-          checked={fc.enableImageAnalysis}
-          onChange={(e) => {
-            const checked = e.target.checked;
-            config.update(
-              (c) => (c.fileConversionConfig.enableImageAnalysis = checked),
-            );
-          }}
-        />
-      </ListItem>
+          <ListItem
+            title={Locale.FileConversion.MinerU.EnableImageAnalysis.Title}
+            subTitle={Locale.FileConversion.MinerU.EnableImageAnalysis.Desc}
+          >
+            <input
+              aria-label={
+                Locale.FileConversion.MinerU.EnableImageAnalysis.Title
+              }
+              type="checkbox"
+              checked={fc.enableImageAnalysis}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                config.update(
+                  (c) => (c.fileConversionConfig.enableImageAnalysis = checked),
+                );
+              }}
+            />
+          </ListItem>
 
-      <ListItem
-        title={Locale.FileConversion.MinerU.ParseMethod.Title}
-        subTitle={PARSE_METHOD.find((m) => m.value === fc.parseMethod)?.desc}
-      >
-        <Select
-          aria-label={Locale.FileConversion.MinerU.ParseMethod.Title}
-          value={fc.parseMethod}
-          onChange={(e) => {
-            const val = e.target.value as ParseMethod;
-            config.update((c) => (c.fileConversionConfig.parseMethod = val));
-          }}
-        >
-          {PARSE_METHOD.map((m) => (
-            <option key={m.value} value={m.value}>
-              {m.value}
-            </option>
-          ))}
-        </Select>
-      </ListItem>
+          <ListItem
+            title={Locale.FileConversion.MinerU.ParseMethod.Title}
+            subTitle={
+              PARSE_METHOD.find((m) => m.value === fc.parseMethod)?.desc
+            }
+          >
+            <Select
+              aria-label={Locale.FileConversion.MinerU.ParseMethod.Title}
+              value={fc.parseMethod}
+              onChange={(e) => {
+                const val = e.target.value as ParseMethod;
+                config.update(
+                  (c) => (c.fileConversionConfig.parseMethod = val),
+                );
+              }}
+            >
+              {PARSE_METHOD.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.value}
+                </option>
+              ))}
+            </Select>
+          </ListItem>
 
-      <ListItem
-        title={Locale.FileConversion.MinerU.OcrLanguage.Title}
-        subTitle={OCR_LANGUAGES.find((l) => l.value === fc.ocrLanguage)?.desc}
-      >
-        <Select
-          aria-label={Locale.FileConversion.MinerU.OcrLanguage.Title}
-          value={fc.ocrLanguage}
-          onChange={(e) => {
-            const val = e.target.value as OcrLanguage;
-            config.update((c) => (c.fileConversionConfig.ocrLanguage = val));
-          }}
-        >
-          {OCR_LANGUAGES.map((lang) => (
-            <option key={lang.value} value={lang.value}>
-              {lang.value}
-            </option>
-          ))}
-        </Select>
-      </ListItem>
+          <ListItem
+            title={Locale.FileConversion.MinerU.OcrLanguage.Title}
+            subTitle={
+              OCR_LANGUAGES.find((l) => l.value === fc.ocrLanguage)?.desc
+            }
+          >
+            <Select
+              aria-label={Locale.FileConversion.MinerU.OcrLanguage.Title}
+              value={fc.ocrLanguage}
+              onChange={(e) => {
+                const val = e.target.value as OcrLanguage;
+                config.update(
+                  (c) => (c.fileConversionConfig.ocrLanguage = val),
+                );
+              }}
+            >
+              {OCR_LANGUAGES.map((lang) => (
+                <option key={lang.value} value={lang.value}>
+                  {lang.value}
+                </option>
+              ))}
+            </Select>
+          </ListItem>
+        </>
+      )}
     </>
   );
 }

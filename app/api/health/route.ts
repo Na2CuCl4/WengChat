@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSideConfig } from "@/app/config/server";
+import { getMinerUHealth, getMinerUTiers } from "@/app/api/mineru";
 
 async function handle(req: NextRequest) {
   const serverConfig = getServerSideConfig();
@@ -13,22 +14,22 @@ async function handle(req: NextRequest) {
           { status: 503 },
         );
       }
-      const res = await fetch(`${serverConfig.minerUServer}/health`);
-      const json = await res.json().catch(() => null);
-      if (!res.ok || !json) {
+      try {
+        const health = await getMinerUHealth(
+          serverConfig.minerUServer,
+          req.signal,
+        );
+        const tiers =
+          health.api_version === "v1"
+            ? await getMinerUTiers(serverConfig.minerUServer, req.signal)
+            : undefined;
+        return NextResponse.json({ ...health, tiers });
+      } catch (err) {
         return NextResponse.json(
-          { error: "Health check failed" },
+          { error: (err as Error).message },
           { status: 502 },
         );
       }
-      return NextResponse.json({
-        status: json.status,
-        version: json.version,
-        queued_tasks: json.queued_tasks,
-        processing_tasks: json.processing_tasks,
-        completed_tasks: json.completed_tasks,
-        failed_tasks: json.failed_tasks,
-      });
     }
 
     // ── MarkItDown path (default) ─────────────────────────────────

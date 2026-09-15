@@ -123,6 +123,7 @@ export const DEFAULT_CONFIG = {
       | "pipeline"
       | "vlm-engine"
       | "hybrid-engine",
+    minerUTier: "standard" as "flash" | "basic" | "standard" | "advanced",
     maxPages: 1000,
     enableTableRecognition: true,
     enableInlineFormulaRecognition: true,
