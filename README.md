@@ -6,7 +6,7 @@ English / [简体中文](./README_CN.md) / [日本語](./README_JA.md) / [한국
 
 ✨ Light and Fast AI Assistant, with Claude, DeepSeek, GPT & Gemini Pro support.
 
-[<img src="https://vercel.com/button" alt="Deploy on Vercel" height="30">](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FNa2CuCl4%2FWengChat&env=OPENAI_API_KEY&env=CODE&project-name=wengchat&repository-name=WengChat) [<img src="https://gitpod.io/button/open-in-gitpod.svg" alt="Open in Gitpod" height="30">](https://gitpod.io/#https://github.com/Na2CuCl4/WengChat)
+[<img src="https://vercel.com/button" alt="Deploy on Vercel" height="30">](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FNa2CuCl4%2FWengChat&env=OPENAI_API_KEY&env=CODE&project-name=wengchat&repository-name=WengChat) [<img src="https://gitpod.io/button/open-in-gitpod.svg" alt="Open in Gitpod" height="30">](https://gitpod.io/#https://github.com/Na2CuCl4/WengChat) [<img src="https://oss.opendeploy.dev/static/deploy-with-your-agent.svg" alt="Deploy with your agent" height="30">](https://opendeploy.dev/github/Na2CuCl4/WengChat)
 
 </div>
 
@@ -41,7 +41,7 @@ English / [简体中文](./README_CN.md) / [日本語](./README_JA.md) / [한국
 ## What's New
 
 - **v2.19.2**: Renamed this fork to WengChat while retaining NextChat ecosystem compatibility
-- **v2.19.1**: Fixed Clear All button not resetting conversion log, fixed infinite retry loop on conversion failure, DownloadAll now packages as zip with extraction, updated MinerU engine to latest API (backend names, OCR languages, parse effort setting)
+- **v2.19.1**: Fixed bugs on File Conversion page, updated MinerU engine to latest API
 - **v2.19.0**: File Conversion page with MarkItDown & MinerU engines, Docker Compose profiles
 - **v2.18.0**: OpenAI Responses format `/v1/responses`, GPT-5 series models with `reasoning_effort` / `response_format` / `verbosity`, image-to-image generation
 - **v2.17.0**: Custom conversation summary model, GPT-Image family text-to-image generation
