@@ -95,15 +95,12 @@
       "dangerousUseHttpScheme": true
     },
     "updater": {
-      "active": false,
+      "active": true,
       "endpoints": [
         "https://github.com/Na2CuCl4/WengChat/releases/latest/download/latest.json"
       ],
       "dialog": true,
-      "windows": {
-        "installMode": "passive"
-      },
-      "pubkey": ""
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDc1QzYwRTdDODQ5MkMyOTIKUldTU3dwS0VmQTdHZFdScFdsTGkvcE5PU3pTY0VJSjl5K1IweEhkQk5WZFVrV1poTG5ZVUpNMDUK"
     },
     "windows": [
       {

@@ -20,7 +20,7 @@ yarn start
 - 启动 MarkItDown 服务
 
 ```bash
-cd ~/Projects/Website/WengChatReadFile
+cd ~/Projects/Website/NextChatReadFile
 conda activate personal-website
 uvicorn main:app --reload --port 8000
 ```

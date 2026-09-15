@@ -2,11 +2,11 @@
 
 # ![WengChat](docs/images/icon.svg) WengChat
 
-[English](./README.md) / 简体中文 / [日本語](./README_JP.md) / [한국어](./README_KO.md)
+[English](./README.md) / 简体中文 / [日本語](./README_JA.md) / [한국어](./README_KO.md)
 
 ✨ 轻量、快速的 AI 助手，支持 Claude, DeepSeek, GPT & Gemini Pro。
 
-[<img src="https://zeabur.com/button.svg" alt="Deploy on Zeabur" height="30">](https://zeabur.com/templates/ZBUEFA) [<img src="https://vercel.com/button" alt="Deploy on Vercel" height="30">](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FNa2CuCl4%2FWengChat&env=OPENAI_API_KEY&env=CODE&project-name=wengchat&repository-name=WengChat) [<img src="https://gitpod.io/button/open-in-gitpod.svg" alt="Open in Gitpod" height="30">](https://gitpod.io/#https://github.com/Na2CuCl4/WengChat)
+[<img src="https://vercel.com/button" alt="Deploy on Vercel" height="30">](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FNa2CuCl4%2FWengChat&env=OPENAI_API_KEY&env=CODE&project-name=wengchat&repository-name=WengChat) [<img src="https://gitpod.io/button/open-in-gitpod.svg" alt="Open in Gitpod" height="30">](https://gitpod.io/#https://github.com/Na2CuCl4/WengChat)
 
 </div>
 
@@ -40,7 +40,7 @@
 
 ## 更新日志
 
-- **v2.19.2**：统一重命名为 WengChat，并迁移发布标识
+- **v2.19.2**：将本 Fork 的发行标识更名为 WengChat，继续兼容 NextChat 生态
 - **v2.19.1**：修复"全部清除"按钮未重置转换日志、修复转换失败时无限重试循环、下载全部改为 zip 打包提取，更新 MinerU 引擎至最新 API（解析后端名称、OCR 语言、解析精度设置）
 - **v2.19.0**：文件转换页面（MarkItDown & MinerU 引擎），Docker Compose profiles（readfile, mineru），docker-build.sh 构建脚本
 - **v2.18.0**：OpenAI Responses 格式 `/v1/responses`，GPT-5 系列模型参数 `reasoning_effort` / `response_format` / `verbosity`，图生图，上传数量扩至 15 张
@@ -48,7 +48,7 @@
 - **v2.16.2**：文件上传支持，自动更新检测，多语言改进，服务端响应超时延长至 10 分钟
 - **v2.15.8**：支持 Realtime Chat [#5672](https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web/issues/5672)
 - **v2.15.4**：Tauri 拉取 LLM API，更安全 [#5379](https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web/issues/5379)
-- **v2.15.0**：支持插件！[WengChat-Awesome-Plugins](https://github.com/Na2CuCl4/WengChat-Awesome-Plugins)
+- **v2.15.0**：支持插件！[NextChat-Awesome-Plugins](https://github.com/ChatGPTNextWeb/NextChat-Awesome-Plugins)
 - **v2.14.0**：支持 Artifacts & Stable Diffusion
 - **v2.10.1**：支持 Google Gemini Pro 模型
 - **v2.9.11**：支持 Azure 端点
@@ -420,7 +420,7 @@ ByteDance 模式：`modelName@bytedance=deploymentName`
 
 #### `FILE_READING_SERVER`（可选）
 
-> 示例：`http://wengchat-readfile:8000`
+> 示例：`http://nextchat-readfile:8000`
 
 文件读取 sidecar 服务地址（用于解析上传的文档）。
 

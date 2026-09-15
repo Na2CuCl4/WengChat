@@ -6,7 +6,7 @@
 
 ✨ 軽量で高速なAIアシスタント、Claude, DeepSeek, GPT & Gemini Pro 対応。
 
-[<img src="https://zeabur.com/button.svg" alt="Deploy on Zeabur" height="30">](https://zeabur.com/templates/ZBUEFA) [<img src="https://vercel.com/button" alt="Deploy on Vercel" height="30">](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FNa2CuCl4%2FWengChat&env=OPENAI_API_KEY&env=CODE&project-name=wengchat&repository-name=WengChat) [<img src="https://gitpod.io/button/open-in-gitpod.svg" alt="Open in Gitpod" height="30">](https://gitpod.io/#https://github.com/Na2CuCl4/WengChat)
+[<img src="https://vercel.com/button" alt="Deploy on Vercel" height="30">](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FNa2CuCl4%2FWengChat&env=OPENAI_API_KEY&env=CODE&project-name=wengchat&repository-name=WengChat) [<img src="https://gitpod.io/button/open-in-gitpod.svg" alt="Open in Gitpod" height="30">](https://gitpod.io/#https://github.com/Na2CuCl4/WengChat)
 
 </div>
 
@@ -40,7 +40,7 @@
 
 ## 更新情報
 
-- **v2.19.2**：WengChat への名称統一と配布識別子の移行
+- **v2.19.2**：本 Fork の配布名を WengChat に変更し、NextChat エコシステムとの互換性を維持
 - **v2.19.1**：「すべてクリア」ボタンで変換ログがリセットされない問題を修正、変換失敗時の無限リトライループを修正、一括ダウンロードをzipパッケージ抽出に変更、MinerUエンジンを最新APIに対応（バックエンド名、OCR言語、解析精度設定）
 - **v2.19.0**：ファイル変換ページ（MarkItDown & MinerUエンジン）、Docker Compose profiles（readfile, mineru）、docker-build.shスクリプト
 - **v2.18.0**：OpenAI Responses形式`/v1/responses`、GPT-5シリーズ`reasoning_effort` / `response_format` / `verbosity`、image-to-image生成、アップロード上限15枚に拡大
@@ -48,7 +48,7 @@
 - **v2.16.2**：ファイルアップロード対応、自動更新検出、多言語改善、サーバー応答タイムアウト10分に延長
 - **v2.15.8**：リアルタイムチャット対応 [#5672](https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web/issues/5672)
 - **v2.15.4**：TauriでLLM API取得、セキュリティ向上 [#5379](https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web/issues/5379)
-- **v2.15.0**：プラグイン対応！[WengChat-Awesome-Plugins](https://github.com/Na2CuCl4/WengChat-Awesome-Plugins)
+- **v2.15.0**：プラグイン対応！[NextChat-Awesome-Plugins](https://github.com/ChatGPTNextWeb/NextChat-Awesome-Plugins)
 - **v2.14.0**：Artifacts & Stable Diffusion対応
 - **v2.10.1**：Google Gemini Proモデル対応
 - **v2.9.11**：Azureエンドポイント対応
@@ -420,7 +420,7 @@ ByteDanceの場合：`modelName@bytedance=deploymentName`
 
 #### `FILE_READING_SERVER`（オプション）
 
-> 例: `http://wengchat-readfile:8000`
+> 例: `http://nextchat-readfile:8000`
 
 ファイル読み取りサイドカーサービスのURL（アップロードされたドキュメントの解析に使用）。
 

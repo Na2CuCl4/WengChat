@@ -1,7 +1,7 @@
 export const OWNER = "Na2CuCl4";
 export const REPO = "WengChat";
 export const REPO_URL = `https://github.com/${OWNER}/${REPO}`;
-export const PLUGINS_REPO_URL = `https://github.com/Na2CuCl4/WengChat-Awesome-Plugins`;
+export const PLUGINS_REPO_URL = `https://github.com/ChatGPTNextWeb/NextChat-Awesome-Plugins`;
 export const ISSUE_URL = `https://github.com/${OWNER}/${REPO}/issues`;
 export const UPDATE_URL = `${REPO_URL}#keep-updated`;
 export const RELEASE_URL = `${REPO_URL}/releases`;
@@ -90,8 +90,8 @@ export enum FileName {
 }
 
 export enum StoreKey {
-  Chat = "wengchat-store",
-  Plugin = "wengchat-plugin",
+  Chat = "chat-next-web-store",
+  Plugin = "chat-next-web-plugin",
   Access = "access-control",
   Config = "app-config",
   Mask = "mask-store",
@@ -112,7 +112,7 @@ export const ACCESS_CODE_PREFIX = "nk-";
 export const LAST_INPUT_KEY = "last-input";
 export const UNFINISHED_INPUT = (id: string) => "unfinished-input-" + id;
 
-export const STORAGE_KEY = "wengchat";
+export const STORAGE_KEY = "chatgpt-next-web";
 
 export const REQUEST_TIMEOUT_MS = 600000;
 

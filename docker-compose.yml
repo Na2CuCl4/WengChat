@@ -16,13 +16,13 @@ services:
       CODE: ${CODE}
       CUSTOM_MODELS: ${CUSTOM_MODELS}
       DEFAULT_MODEL: ${DEFAULT_MODEL}
-      FILE_READING_SERVER: http://wengchat-readfile:8000
+      FILE_READING_SERVER: http://nextchat-readfile:8000
       HIDE_USER_API_KEY: 1
       MINERU_SERVER: http://mineru-api:8000
 
-  wengchat-readfile:
-    image: na2cucl4/wengchat-readfile:latest
-    container_name: wengchat-readfile
+  nextchat-readfile:
+    image: na2cucl4/nextchat-readfile:latest
+    container_name: nextchat-readfile
     restart: always
     profiles:
       - readfile
