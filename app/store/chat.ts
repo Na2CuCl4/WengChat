@@ -33,7 +33,7 @@ import { ModelConfig, ModelType, useAppConfig } from "./config";
 import { useAccessStore } from "./access";
 import { collectModelsWithDefaultModel } from "../utils/model";
 import { createEmptyMask, Mask } from "./mask";
-import { executeMcpAction, getAllTools, isMcpEnabled } from "../mcp/actions";
+import { executeMcpAction, getAllTools, isMcpEnabled } from "../mcp/api";
 import { extractMcpJson, isMcpJson } from "../mcp/utils";
 
 const localStorage = safeLocalStorage();
@@ -842,12 +842,11 @@ export const useChatStore = createPersistStore(
       },
 
       /** check if the message contains MCP JSON and execute the MCP action */
-      checkMcpJson(message: ChatMessage) {
-        const mcpEnabled = isMcpEnabled();
-        if (!mcpEnabled) return;
-        const content = getMessageTextContent(message);
-        if (isMcpJson(content)) {
-          try {
+      async checkMcpJson(message: ChatMessage) {
+        try {
+          if (!(await isMcpEnabled())) return;
+          const content = getMessageTextContent(message);
+          if (isMcpJson(content)) {
             const mcpRequest = extractMcpJson(content);
             if (mcpRequest) {
               console.debug("[MCP Request]", mcpRequest);
@@ -868,9 +867,9 @@ export const useChatStore = createPersistStore(
                 })
                 .catch((error) => showToast("MCP execution failed", error));
             }
-          } catch (error) {
-            console.error("[Check MCP JSON]", error);
           }
+        } catch (error) {
+          console.error("[Check MCP JSON]", error);
         }
       },
     };

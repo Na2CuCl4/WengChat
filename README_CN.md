@@ -35,7 +35,7 @@
 - **图像生成**：支持 GPT-Image 模型的文生图和图生图
 - **OpenAI Responses 格式**：支持 `/v1/responses` 和 GPT-5 系列参数 `reasoning_effort`、`response_format`、`verbosity`
 - **文件转换**：内置文件转换页面，支持 MarkItDown 和 MinerU 双引擎批量处理
-- **MCP 支持**：Model Context Protocol 集成（通过 `ENABLE_MCP=true` 启用）
+- **MCP 支持**：默认关闭；启用时需要访问密码和管理员维护的本地配置
 - **自动更新**：自动检测并提示更新
 
 ## 更新日志
@@ -373,9 +373,13 @@ HTTP 代理（Docker 专用）。
 
 #### `ENABLE_MCP`（可选）
 
-> 默认：空
+> 默认：`false`
 
-设为 `true` 启用 MCP（Model Context Protocol）功能。
+设为 `true` 启用 MCP（Model Context Protocol）功能，同时必须设置非空
+`CODE`。MCP Server 只能由管理员在 `app/mcp/mcp_config.json` 中配置；
+Web 界面和 API 均不提供远程安装或修改进程定义。该配置中的命令会在服务器上执行，
+因此必须将其作为受信任代码管理。
+生产构建后可运行 `yarn test:cve-2026-7644` 执行本地 HTTP 安全回归。
 
 ---
 

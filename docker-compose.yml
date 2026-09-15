@@ -14,6 +14,7 @@ services:
       BASE_URL: ${BASE_URL}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       CODE: ${CODE}
+      ENABLE_MCP: ${ENABLE_MCP:-false}
       CUSTOM_MODELS: ${CUSTOM_MODELS}
       DEFAULT_MODEL: ${DEFAULT_MODEL}
       FILE_READING_SERVER: http://nextchat-readfile:8000

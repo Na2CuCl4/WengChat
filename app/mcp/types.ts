@@ -1,65 +1,33 @@
 // ref: https://spec.modelcontextprotocol.io/specification/basic/messages/
 
 import { z } from "zod";
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
 
-export interface McpRequestMessage {
-  jsonrpc?: "2.0";
-  id?: string | number;
-  method: "tools/call" | string;
-  params?: {
-    [key: string]: unknown;
-  };
+const MAX_REQUEST_BYTES = 64 * 1024;
+
+function isBoundedJson(value: unknown) {
+  try {
+    const json = JSON.stringify(value);
+    return json !== undefined && new Blob([json]).size <= MAX_REQUEST_BYTES;
+  } catch {
+    return false;
+  }
 }
 
-export const McpRequestMessageSchema: z.ZodType<McpRequestMessage> = z.object({
-  jsonrpc: z.literal("2.0").optional(),
-  id: z.union([z.string(), z.number()]).optional(),
-  method: z.string(),
-  params: z.record(z.unknown()).optional(),
-});
-
-export interface McpResponseMessage {
-  jsonrpc?: "2.0";
-  id?: string | number;
-  result?: {
-    [key: string]: unknown;
-  };
-  error?: {
-    code: number;
-    message: string;
-    data?: unknown;
-  };
-}
-
-export const McpResponseMessageSchema: z.ZodType<McpResponseMessage> = z.object(
-  {
-    jsonrpc: z.literal("2.0").optional(),
-    id: z.union([z.string(), z.number()]).optional(),
-    result: z.record(z.unknown()).optional(),
-    error: z
+export const McpRequestMessageSchema = z
+  .object({
+    method: z.literal("tools/call"),
+    params: z
       .object({
-        code: z.number(),
-        message: z.string(),
-        data: z.unknown().optional(),
+        name: z.string().min(1).max(256),
+        arguments: z.record(z.unknown()).optional(),
       })
-      .optional(),
-  },
-);
+      .strict(),
+  })
+  .strict()
+  .refine(isBoundedJson, { message: "MCP request exceeds 64 KiB" });
 
-export interface McpNotifications {
-  jsonrpc?: "2.0";
-  method: string;
-  params?: {
-    [key: string]: unknown;
-  };
-}
-
-export const McpNotificationsSchema: z.ZodType<McpNotifications> = z.object({
-  jsonrpc: z.literal("2.0").optional(),
-  method: z.string(),
-  params: z.record(z.unknown()).optional(),
-});
+export type McpRequestMessage = z.infer<typeof McpRequestMessageSchema>;
 
 ////////////
 // WengChat
@@ -110,71 +78,52 @@ export interface ServerStatusResponse {
 }
 
 // MCP 服务器配置相关类型
-export interface ServerConfig {
-  command: string;
-  args: string[];
-  env?: Record<string, string>;
-  status?: "active" | "paused" | "error";
-}
+export const McpClientIdSchema = z
+  .string()
+  .min(1)
+  .max(64)
+  .regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/)
+  .refine(
+    (value) =>
+      value !== "__proto__" && value !== "constructor" && value !== "prototype",
+  );
 
-export interface McpConfigData {
-  // MCP Server 的配置
-  mcpServers: Record<string, ServerConfig>;
-}
+const McpEnvironmentSchema = z
+  .record(
+    z.string().regex(/^[A-Za-z_][A-Za-z0-9_]*$/),
+    z.string().max(32 * 1024),
+  )
+  .refine((value) => Object.keys(value).length <= 128);
+
+export const ServerConfigSchema = z
+  .object({
+    command: z
+      .string()
+      .min(1)
+      .max(1024)
+      .refine((value) => !value.includes("\0")),
+    args: z
+      .array(
+        z
+          .string()
+          .max(8192)
+          .refine((value) => !value.includes("\0")),
+      )
+      .max(128),
+    env: McpEnvironmentSchema.optional(),
+    status: z.enum(["active", "paused", "error"]).optional(),
+  })
+  .strict();
+
+export const McpConfigDataSchema = z
+  .object({
+    mcpServers: z.record(McpClientIdSchema, ServerConfigSchema),
+  })
+  .strict();
+
+export type ServerConfig = z.infer<typeof ServerConfigSchema>;
+export type McpConfigData = z.infer<typeof McpConfigDataSchema>;
 
 export const DEFAULT_MCP_CONFIG: McpConfigData = {
   mcpServers: {},
 };
-
-export interface ArgsMapping {
-  // 参数映射的类型
-  type: "spread" | "single" | "env";
-
-  // 参数映射的位置
-  position?: number;
-
-  // 参数映射的 key
-  key?: string;
-}
-
-export interface PresetServer {
-  // MCP Server 的唯一标识，作为最终配置文件 Json 的 key
-  id: string;
-
-  // MCP Server 的显示名称
-  name: string;
-
-  // MCP Server 的描述
-  description: string;
-
-  // MCP Server 的仓库地址
-  repo: string;
-
-  // MCP Server 的标签
-  tags: string[];
-
-  // MCP Server 的命令
-  command: string;
-
-  // MCP Server 的参数
-  baseArgs: string[];
-
-  // MCP Server 是否需要配置
-  configurable: boolean;
-
-  // MCP Server 的配置 schema
-  configSchema?: {
-    properties: Record<
-      string,
-      {
-        type: string;
-        description?: string;
-        required?: boolean;
-        minItems?: number;
-      }
-    >;
-  };
-
-  // MCP Server 的参数映射
-  argsMapping?: Record<string, ArgsMapping>;
-}

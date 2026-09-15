@@ -35,7 +35,7 @@
 - **画像生成**：GPT-Imageモデルによるtext-to-imageとimage-to-image生成
 - **OpenAI Responses形式**：`/v1/responses`とGPT-5シリーズの`reasoning_effort`、`response_format`、`verbosity`対応
 - **ファイル変換**：MarkItDownとMinerUエンジンによるバッチ変換ページを内蔵
-- **MCP対応**：Model Context Protocol統合（`ENABLE_MCP=true`で有効化）
+- **MCP対応**：デフォルトで無効。有効化にはアクセスコードと管理者が管理するローカル設定が必要
 - **自動更新**：更新を自動検出して通知
 
 ## 更新情報
@@ -373,9 +373,14 @@ HTTPプロキシ（Dockerのみ）。
 
 #### `ENABLE_MCP`（オプション）
 
-> デフォルト: 空
+> デフォルト: `false`
 
-`true`に設定すると、MCP（Model Context Protocol）機能を有効にします。
+`true`に設定すると MCP（Model Context Protocol）機能を有効にします。
+空でない `CODE` も必要です。MCP Server は管理者が
+`app/mcp/mcp_config.json` に定義し、Web UI や API からのリモートインストールや
+プロセス定義の編集はできません。設定内のコマンドはサーバー上で実行されるため、信頼できる
+コードとして管理してください。
+本番ビルド後に `yarn test:cve-2026-7644` でローカル HTTP セキュリティ回帰を実行できます。
 
 ---
 

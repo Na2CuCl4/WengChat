@@ -35,7 +35,7 @@
 - **이미지 생성**: GPT-Image 모델 text-to-image 및 image-to-image 생성
 - **OpenAI Responses 형식**: `/v1/responses` 및 GPT-5 시리즈 `reasoning_effort`, `response_format`, `verbosity` 지원
 - **파일 변환**: MarkItDown 및 MinerU 엔진 기반 배치 변환 페이지 내장
-- **MCP 지원**: Model Context Protocol 통합 (`ENABLE_MCP=true`로 활성화)
+- **MCP 지원**: 기본적으로 비활성화되며 액세스 코드와 관리자가 관리하는 로컬 설정이 필요합니다
 - **자동 업데이트**: 업데이트 자동 감지 및 알림
 
 ## 업데이트 소식
@@ -373,9 +373,14 @@ HTTP 프록시 (Docker 전용).
 
 #### `ENABLE_MCP` (선택)
 
-> 기본값: 비어 있음
+> 기본값: `false`
 
 `true`로 설정하면 MCP (Model Context Protocol) 기능을 활성화합니다.
+비어 있지 않은 `CODE`도 필요합니다. MCP Server는 관리자가
+`app/mcp/mcp_config.json`에 정의해야 하며 Web UI 또는 API로 원격 설치하거나
+프로세스 정의를 편집할 수 없습니다. 설정의 명령은 서버에서 실행되므로 신뢰할 수 있는
+코드로 관리하십시오.
+프로덕션 빌드 후 `yarn test:cve-2026-7644`로 로컬 HTTP 보안 회귀 테스트를 실행할 수 있습니다.
 
 ---
 

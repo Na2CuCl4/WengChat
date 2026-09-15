@@ -1,4 +1,6 @@
-"use server";
+import fs from "fs/promises";
+import path from "path";
+
 import {
   createClient,
   executeRequest,
@@ -9,24 +11,94 @@ import { MCPClientLogger } from "./logger";
 import {
   DEFAULT_MCP_CONFIG,
   McpClientData,
+  McpClientIdSchema,
   McpConfigData,
-  McpRequestMessage,
+  McpConfigDataSchema,
   ServerConfig,
+  ServerConfigSchema,
   ServerStatusResponse,
 } from "./types";
-import fs from "fs/promises";
-import path from "path";
-import { getServerSideConfig } from "../config/server";
+import { isMcpFeatureEnabled, requireMcpFeatureEnabled } from "./security";
 
 const logger = new MCPClientLogger("MCP Actions");
 const CONFIG_PATH = path.join(process.cwd(), "app/mcp/mcp_config.json");
-
 const clientsMap = new Map<string, McpClientData>();
 
-// 获取客户端状态
+async function getMcpConfigFromFile(): Promise<McpConfigData> {
+  requireMcpFeatureEnabled();
+
+  let config: string;
+  try {
+    config = await fs.readFile(CONFIG_PATH, "utf-8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return DEFAULT_MCP_CONFIG;
+    }
+    throw new Error("Failed to load MCP configuration");
+  }
+
+  try {
+    return McpConfigDataSchema.parse(JSON.parse(config));
+  } catch {
+    throw new Error("Invalid MCP configuration");
+  }
+}
+
+async function updateMcpConfig(config: McpConfigData): Promise<void> {
+  requireMcpFeatureEnabled();
+  const validatedConfig = McpConfigDataSchema.parse(config);
+  await fs.mkdir(path.dirname(CONFIG_PATH), { recursive: true });
+  await fs.writeFile(CONFIG_PATH, JSON.stringify(validatedConfig, null, 2), {
+    mode: 0o600,
+  });
+}
+
+async function initializeSingleClient(
+  clientId: string,
+  serverConfig: ServerConfig,
+) {
+  requireMcpFeatureEnabled();
+  const validatedClientId = McpClientIdSchema.parse(clientId);
+  const validatedConfig = ServerConfigSchema.parse(serverConfig);
+
+  if (validatedConfig.status === "paused") {
+    logger.info(
+      `Skipping initialization for paused client [${validatedClientId}]`,
+    );
+    return;
+  }
+
+  logger.info(`Initializing client [${validatedClientId}]...`);
+  clientsMap.set(validatedClientId, {
+    client: null,
+    tools: null,
+    errorMsg: null,
+  });
+
+  try {
+    const client = await createClient(validatedClientId, validatedConfig);
+    try {
+      const tools = await listTools(client);
+      clientsMap.set(validatedClientId, { client, tools, errorMsg: null });
+      logger.success(`Client [${validatedClientId}] initialized successfully`);
+    } catch (error) {
+      await removeClient(client).catch(() => undefined);
+      throw error;
+    }
+  } catch {
+    clientsMap.set(validatedClientId, {
+      client: null,
+      tools: null,
+      errorMsg: "Initialization failed",
+    });
+    logger.error(`Failed to initialize client [${validatedClientId}]`);
+  }
+}
+
 export async function getClientsStatus(): Promise<
   Record<string, ServerStatusResponse>
 > {
+  requireMcpFeatureEnabled();
   const config = await getMcpConfigFromFile();
   const result: Record<string, ServerStatusResponse> = {};
 
@@ -36,350 +108,140 @@ export async function getClientsStatus(): Promise<
 
     if (!serverConfig) {
       result[clientId] = { status: "undefined", errorMsg: null };
-      continue;
-    }
-
-    if (serverConfig.status === "paused") {
+    } else if (serverConfig.status === "paused") {
       result[clientId] = { status: "paused", errorMsg: null };
-      continue;
-    }
-
-    if (!status) {
+    } else if (!status) {
       result[clientId] = { status: "undefined", errorMsg: null };
-      continue;
-    }
-
-    if (
+    } else if (
       status.client === null &&
       status.tools === null &&
       status.errorMsg === null
     ) {
       result[clientId] = { status: "initializing", errorMsg: null };
-      continue;
-    }
-
-    if (status.errorMsg) {
+    } else if (status.errorMsg) {
       result[clientId] = { status: "error", errorMsg: status.errorMsg };
-      continue;
-    }
-
-    if (status.client) {
+    } else if (status.client) {
       result[clientId] = { status: "active", errorMsg: null };
-      continue;
+    } else {
+      result[clientId] = { status: "error", errorMsg: "Client not found" };
     }
-
-    result[clientId] = { status: "error", errorMsg: "Client not found" };
   }
 
   return result;
 }
 
-// 获取客户端工具
-export async function getClientTools(clientId: string) {
-  return clientsMap.get(clientId)?.tools ?? null;
+export async function getClientTools(clientId: unknown) {
+  requireMcpFeatureEnabled();
+  return clientsMap.get(McpClientIdSchema.parse(clientId))?.tools ?? null;
 }
 
-// 获取可用客户端数量
 export async function getAvailableClientsCount() {
+  requireMcpFeatureEnabled();
   let count = 0;
-  clientsMap.forEach((map) => !map.errorMsg && count++);
+  clientsMap.forEach((client) => !client.errorMsg && count++);
   return count;
 }
 
-// 获取所有客户端工具
 export async function getAllTools() {
-  const result = [];
-  for (const [clientId, status] of clientsMap.entries()) {
-    result.push({
-      clientId,
-      tools: status.tools,
-    });
-  }
-  return result;
+  requireMcpFeatureEnabled();
+  return Array.from(clientsMap, ([clientId, client]) => ({
+    clientId,
+    tools: client.tools,
+  }));
 }
 
-// 初始化单个客户端
-async function initializeSingleClient(
-  clientId: string,
-  serverConfig: ServerConfig,
-) {
-  // 如果服务器状态是暂停，则不初始化
-  if (serverConfig.status === "paused") {
-    logger.info(`Skipping initialization for paused client [${clientId}]`);
-    return;
-  }
-
-  logger.info(`Initializing client [${clientId}]...`);
-
-  // 先设置初始化状态
-  clientsMap.set(clientId, {
-    client: null,
-    tools: null,
-    errorMsg: null, // null 表示正在初始化
-  });
-
-  // 异步初始化
-  createClient(clientId, serverConfig)
-    .then(async (client) => {
-      const tools = await listTools(client);
-      logger.info(
-        `Supported tools for [${clientId}]: ${JSON.stringify(tools, null, 2)}`,
-      );
-      clientsMap.set(clientId, { client, tools, errorMsg: null });
-      logger.success(`Client [${clientId}] initialized successfully`);
-    })
-    .catch((error) => {
-      clientsMap.set(clientId, {
-        client: null,
-        tools: null,
-        errorMsg: error instanceof Error ? error.message : String(error),
-      });
-      logger.error(`Failed to initialize client [${clientId}]: ${error}`);
-    });
-}
-
-// 初始化系统
 export async function initializeMcpSystem() {
-  logger.info("MCP Actions starting...");
-  try {
-    // 检查是否已有活跃的客户端
-    if (clientsMap.size > 0) {
-      logger.info("MCP system already initialized, skipping...");
-      return;
-    }
+  requireMcpFeatureEnabled();
+  const config = await getMcpConfigFromFile();
+  if (clientsMap.size > 0) return config;
 
-    const config = await getMcpConfigFromFile();
-    // 初始化所有客户端
-    for (const [clientId, serverConfig] of Object.entries(config.mcpServers)) {
-      await initializeSingleClient(clientId, serverConfig);
-    }
-    return config;
-  } catch (error) {
-    logger.error(`Failed to initialize MCP system: ${error}`);
-    throw error;
+  for (const [clientId, serverConfig] of Object.entries(config.mcpServers)) {
+    await initializeSingleClient(clientId, serverConfig);
   }
+  return config;
 }
 
-// 添加服务器
-export async function addMcpServer(clientId: string, config: ServerConfig) {
+export async function pauseMcpServer(clientId: unknown) {
+  requireMcpFeatureEnabled();
+  const validatedClientId = McpClientIdSchema.parse(clientId);
+  const currentConfig = await getMcpConfigFromFile();
+  const serverConfig = currentConfig.mcpServers[validatedClientId];
+  if (!serverConfig) throw new Error("MCP server not found");
+
+  const newConfig: McpConfigData = {
+    ...currentConfig,
+    mcpServers: {
+      ...currentConfig.mcpServers,
+      [validatedClientId]: { ...serverConfig, status: "paused" },
+    },
+  };
+  await updateMcpConfig(newConfig);
+
+  const client = clientsMap.get(validatedClientId);
+  if (client?.client) await removeClient(client.client);
+  clientsMap.delete(validatedClientId);
+  return newConfig;
+}
+
+export async function resumeMcpServer(clientId: unknown): Promise<void> {
+  requireMcpFeatureEnabled();
+  const validatedClientId = McpClientIdSchema.parse(clientId);
+  const currentConfig = await getMcpConfigFromFile();
+  const serverConfig = currentConfig.mcpServers[validatedClientId];
+  if (!serverConfig) throw new Error("MCP server not found");
+
+  let client;
   try {
-    const currentConfig = await getMcpConfigFromFile();
-    const isNewServer = !(clientId in currentConfig.mcpServers);
-
-    // 如果是新服务器，设置默认状态为 active
-    if (isNewServer && !config.status) {
-      config.status = "active";
-    }
-
-    const newConfig = {
+    client = await createClient(validatedClientId, serverConfig);
+    const tools = await listTools(client);
+    await updateMcpConfig({
       ...currentConfig,
       mcpServers: {
         ...currentConfig.mcpServers,
-        [clientId]: config,
+        [validatedClientId]: { ...serverConfig, status: "active" },
       },
-    };
-    await updateMcpConfig(newConfig);
-
-    // 只有新服务器或状态为 active 的服务器才初始化
-    if (isNewServer || config.status === "active") {
-      await initializeSingleClient(clientId, config);
-    }
-
-    return newConfig;
-  } catch (error) {
-    logger.error(`Failed to add server [${clientId}]: ${error}`);
-    throw error;
-  }
-}
-
-// 暂停服务器
-export async function pauseMcpServer(clientId: string) {
-  try {
-    const currentConfig = await getMcpConfigFromFile();
-    const serverConfig = currentConfig.mcpServers[clientId];
-    if (!serverConfig) {
-      throw new Error(`Server ${clientId} not found`);
-    }
-
-    // 先更新配置
-    const newConfig: McpConfigData = {
+    });
+    clientsMap.set(validatedClientId, { client, tools, errorMsg: null });
+  } catch {
+    if (client) await removeClient(client).catch(() => undefined);
+    clientsMap.set(validatedClientId, {
+      client: null,
+      tools: null,
+      errorMsg: "Initialization failed",
+    });
+    await updateMcpConfig({
       ...currentConfig,
       mcpServers: {
         ...currentConfig.mcpServers,
-        [clientId]: {
-          ...serverConfig,
-          status: "paused",
-        },
+        [validatedClientId]: { ...serverConfig, status: "error" },
       },
-    };
-    await updateMcpConfig(newConfig);
-
-    // 然后关闭客户端
-    const client = clientsMap.get(clientId);
-    if (client?.client) {
-      await removeClient(client.client);
-    }
-    clientsMap.delete(clientId);
-
-    return newConfig;
-  } catch (error) {
-    logger.error(`Failed to pause server [${clientId}]: ${error}`);
-    throw error;
+    }).catch(() => undefined);
+    throw new Error("MCP client initialization failed");
   }
 }
 
-// 恢复服务器
-export async function resumeMcpServer(clientId: string): Promise<void> {
-  try {
-    const currentConfig = await getMcpConfigFromFile();
-    const serverConfig = currentConfig.mcpServers[clientId];
-    if (!serverConfig) {
-      throw new Error(`Server ${clientId} not found`);
-    }
-
-    // 先尝试初始化客户端
-    logger.info(`Trying to initialize client [${clientId}]...`);
-    try {
-      const client = await createClient(clientId, serverConfig);
-      const tools = await listTools(client);
-      clientsMap.set(clientId, { client, tools, errorMsg: null });
-      logger.success(`Client [${clientId}] initialized successfully`);
-
-      // 初始化成功后更新配置
-      const newConfig: McpConfigData = {
-        ...currentConfig,
-        mcpServers: {
-          ...currentConfig.mcpServers,
-          [clientId]: {
-            ...serverConfig,
-            status: "active" as const,
-          },
-        },
-      };
-      await updateMcpConfig(newConfig);
-    } catch (error) {
-      const currentConfig = await getMcpConfigFromFile();
-      const serverConfig = currentConfig.mcpServers[clientId];
-
-      // 如果配置中存在该服务器，则更新其状态为 error
-      if (serverConfig) {
-        serverConfig.status = "error";
-        await updateMcpConfig(currentConfig);
-      }
-
-      // 初始化失败
-      clientsMap.set(clientId, {
-        client: null,
-        tools: null,
-        errorMsg: error instanceof Error ? error.message : String(error),
-      });
-      logger.error(`Failed to initialize client [${clientId}]: ${error}`);
-      throw error;
-    }
-  } catch (error) {
-    logger.error(`Failed to resume server [${clientId}]: ${error}`);
-    throw error;
-  }
-}
-
-// 移除服务器
-export async function removeMcpServer(clientId: string) {
-  try {
-    const currentConfig = await getMcpConfigFromFile();
-    const { [clientId]: _, ...rest } = currentConfig.mcpServers;
-    const newConfig = {
-      ...currentConfig,
-      mcpServers: rest,
-    };
-    await updateMcpConfig(newConfig);
-
-    // 关闭并移除客户端
-    const client = clientsMap.get(clientId);
-    if (client?.client) {
-      await removeClient(client.client);
-    }
-    clientsMap.delete(clientId);
-
-    return newConfig;
-  } catch (error) {
-    logger.error(`Failed to remove server [${clientId}]: ${error}`);
-    throw error;
-  }
-}
-
-// 重启所有客户端
 export async function restartAllClients() {
-  logger.info("Restarting all clients...");
-  try {
-    // 关闭所有客户端
-    for (const client of clientsMap.values()) {
-      if (client.client) {
-        await removeClient(client.client);
-      }
-    }
-
-    // 清空状态
-    clientsMap.clear();
-
-    // 重新初始化
-    const config = await getMcpConfigFromFile();
-    for (const [clientId, serverConfig] of Object.entries(config.mcpServers)) {
-      await initializeSingleClient(clientId, serverConfig);
-    }
-    return config;
-  } catch (error) {
-    logger.error(`Failed to restart clients: ${error}`);
-    throw error;
+  requireMcpFeatureEnabled();
+  for (const client of clientsMap.values()) {
+    if (client.client) await removeClient(client.client);
   }
+  clientsMap.clear();
+
+  const config = await getMcpConfigFromFile();
+  for (const [clientId, serverConfig] of Object.entries(config.mcpServers)) {
+    await initializeSingleClient(clientId, serverConfig);
+  }
+  return config;
 }
 
-// 执行 MCP 请求
-export async function executeMcpAction(
-  clientId: string,
-  request: McpRequestMessage,
-) {
-  try {
-    const client = clientsMap.get(clientId);
-    if (!client?.client) {
-      throw new Error(`Client ${clientId} not found`);
-    }
-    logger.info(`Executing request for [${clientId}]`);
-    return await executeRequest(client.client, request);
-  } catch (error) {
-    logger.error(`Failed to execute request for [${clientId}]: ${error}`);
-    throw error;
-  }
+export async function executeMcpAction(clientId: unknown, request: unknown) {
+  requireMcpFeatureEnabled();
+  const validatedClientId = McpClientIdSchema.parse(clientId);
+  const client = clientsMap.get(validatedClientId);
+  if (!client?.client) throw new Error("MCP client not found");
+  return executeRequest(client.client, request);
 }
 
-// 获取 MCP 配置文件
-export async function getMcpConfigFromFile(): Promise<McpConfigData> {
-  try {
-    const configStr = await fs.readFile(CONFIG_PATH, "utf-8");
-    return JSON.parse(configStr);
-  } catch (error) {
-    logger.error(`Failed to load MCP config, using default config: ${error}`);
-    return DEFAULT_MCP_CONFIG;
-  }
-}
-
-// 更新 MCP 配置文件
-async function updateMcpConfig(config: McpConfigData): Promise<void> {
-  try {
-    // 确保目录存在
-    await fs.mkdir(path.dirname(CONFIG_PATH), { recursive: true });
-    await fs.writeFile(CONFIG_PATH, JSON.stringify(config, null, 2));
-  } catch (error) {
-    throw error;
-  }
-}
-
-// 检查 MCP 是否启用
 export async function isMcpEnabled() {
-  try {
-    const serverConfig = getServerSideConfig();
-    return serverConfig.enableMcp;
-  } catch (error) {
-    logger.error(`Failed to check MCP status: ${error}`);
-    return false;
-  }
+  return isMcpFeatureEnabled();
 }

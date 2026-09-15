@@ -1,33 +1,42 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import {
+  getDefaultEnvironment,
+  StdioClientTransport,
+} from "@modelcontextprotocol/sdk/client/stdio.js";
 import { MCPClientLogger } from "./logger";
-import { ListToolsResponse, McpRequestMessage, ServerConfig } from "./types";
-import { z } from "zod";
+import {
+  ListToolsResponse,
+  McpClientIdSchema,
+  McpRequestMessageSchema,
+  ServerConfig,
+  ServerConfigSchema,
+} from "./types";
+import { requireMcpFeatureEnabled } from "./security";
 
 const logger = new MCPClientLogger();
 
+export function buildMcpChildEnvironment(env?: Record<string, string>) {
+  return { ...getDefaultEnvironment(), ...env };
+}
+
 export async function createClient(
-  id: string,
+  id: unknown,
   config: ServerConfig,
 ): Promise<Client> {
-  logger.info(`Creating client for ${id}...`);
+  requireMcpFeatureEnabled();
+  const clientId = McpClientIdSchema.parse(id);
+  const serverConfig = ServerConfigSchema.parse(config);
+  logger.info(`Creating client for ${clientId}...`);
 
   const transport = new StdioClientTransport({
-    command: config.command,
-    args: config.args,
-    env: {
-      ...Object.fromEntries(
-        Object.entries(process.env)
-          .filter(([_, v]) => v !== undefined)
-          .map(([k, v]) => [k, v as string]),
-      ),
-      ...(config.env || {}),
-    },
+    command: serverConfig.command,
+    args: serverConfig.args,
+    env: buildMcpChildEnvironment(serverConfig.env),
   });
 
   const client = new Client(
     {
-      name: `wengchat-mcp-client-${id}`,
+      name: `wengchat-mcp-client-${clientId}`,
       version: "1.0.0",
     },
     {
@@ -47,9 +56,6 @@ export async function listTools(client: Client): Promise<ListToolsResponse> {
   return client.listTools();
 }
 
-export async function executeRequest(
-  client: Client,
-  request: McpRequestMessage,
-) {
-  return client.request(request, z.any());
+export async function executeRequest(client: Client, request: unknown) {
+  return client.callTool(McpRequestMessageSchema.parse(request).params);
 }

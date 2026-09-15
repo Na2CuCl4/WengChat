@@ -53,7 +53,6 @@ export enum Path {
   SdNew = "/sd-new",
   Artifacts = "/artifacts",
   SearchChat = "/search-chat",
-  McpMarket = "/mcp-market",
   FileConversion = "/file-conversion",
 }
 
@@ -99,7 +98,6 @@ export enum StoreKey {
   Update = "chat-update",
   Sync = "sync",
   SdList = "sd-list",
-  Mcp = "mcp-store",
 }
 
 export const DEFAULT_SIDEBAR_WIDTH = 300;

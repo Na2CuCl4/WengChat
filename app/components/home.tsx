@@ -29,7 +29,7 @@ import { getClientConfig } from "../config/client";
 import { type ClientApi, getClientApi } from "../client/api";
 import { useAccessStore } from "../store";
 import clsx from "clsx";
-import { initializeMcpSystem, isMcpEnabled } from "../mcp/actions";
+import { initializeMcpSystem, isMcpEnabled } from "../mcp/api";
 
 export function Loading(props: { noLogo?: boolean }) {
   return (
@@ -75,9 +75,6 @@ const Sd = dynamic(async () => (await import("./sd")).Sd, {
   loading: () => <Loading noLogo />,
 });
 
-const McpMarketPage = dynamic(
-  async () => (await import("./mcp-market")).McpMarketPage,
-);
 const FileConversion = dynamic(
   async () => (await import("./file-conversion")).FileConversion,
   {
@@ -204,7 +201,6 @@ function Screen() {
             <Route path={Path.SearchChat} element={<SearchChat />} />
             <Route path={Path.Chat} element={<Chat />} />
             <Route path={Path.Settings} element={<Settings />} />
-            <Route path={Path.McpMarket} element={<McpMarketPage />} />
             <Route path={Path.FileConversion} element={<FileConversion />} />
           </Routes>
         </WindowContent>
@@ -242,15 +238,20 @@ export function Home() {
   useSwitchTheme();
   useLoadData();
   useHtmlLang();
+  const accessCode = useAccessStore((state) => state.accessCode.trim());
 
   useEffect(() => {
     console.log("[Config] got config from build time", getClientConfig());
     useAccessStore.getState().fetch();
+  }, []);
 
+  useEffect(() => {
+    if (!accessCode) return;
+    let cancelled = false;
     const initMcp = async () => {
       try {
         const enabled = await isMcpEnabled();
-        if (enabled) {
+        if (enabled && !cancelled) {
           console.log("[MCP] initializing...");
           await initializeMcpSystem();
           console.log("[MCP] initialized");
@@ -259,8 +260,12 @@ export function Home() {
         console.error("[MCP] failed to initialize:", err);
       }
     };
-    initMcp();
-  }, []);
+    const timer = setTimeout(initMcp, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [accessCode]);
 
   if (!useHasHydrated()) {
     return <Loading />;

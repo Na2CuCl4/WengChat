@@ -11,6 +11,7 @@ yarn start        # Run production server
 yarn lint         # Run ESLint
 yarn test         # Run Jest tests (watch mode)
 yarn test:ci      # Run Jest tests (CI, single run)
+yarn test:cve-2026-7644 # Test the production MCP HTTP security boundary
 yarn mask         # Build prompt mask templates
 yarn export       # Static export for CDN/static hosting
 yarn app:dev      # Tauri desktop app dev mode
@@ -61,6 +62,7 @@ Server routes live in `app/api/`:
 - `proxy.ts` — proxy endpoint
 - `webdav/` and `upstash/` — cloud sync backends
 - `read_file/` — file reading service proxy (used by `nextchat-readfile` container)
+- `mcp/route.ts` — feature-gated, access-code-authenticated MCP operations
 - `artifacts/` — artifacts serving
 - `health/` — health check endpoint
 - `stability.ts` — Stability AI (image generation) endpoint
@@ -79,7 +81,7 @@ Server routes live in `app/api/`:
 - `app/utils/stream.ts` — streaming response utilities
 - `app/utils/format.ts` — message formatting
 - `app/lib/audio.ts` — audio recording/playback utilities
-- `app/mcp/` — Model Context Protocol integration (`ENABLE_MCP=true` to enable; includes client, server actions, types, config)
+- `app/mcp/` — Model Context Protocol internals and operator-managed local config (`ENABLE_MCP=true` and `CODE` required; no remote server installation)
 - `app/masks/` — prompt template definitions (compiled via `yarn mask`)
 - `app/locales/` — internationalization: 20+ languages (`cn.ts`, `en.ts`, `jp.ts`, etc.)
 
@@ -96,7 +98,6 @@ Server routes live in `app/api/`:
 - `model-config.tsx` — model configuration UI
 - `exporter.tsx` — chat export
 - `markdown.tsx` — markdown rendering (with code highlighting, Mermaid diagrams)
-- `mcp-market.tsx` — MCP server marketplace
 - `plugin.tsx` — plugin management
 - `artifacts.tsx` — artifact rendering (code, HTML, SVGs)
 - `tts-config.tsx` — text-to-speech configuration

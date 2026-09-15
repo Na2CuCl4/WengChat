@@ -35,7 +35,7 @@ English / [简体中文](./README_CN.md) / [日本語](./README_JA.md) / [한국
 - **Image Generation**: Support for text-to-image and image-to-image generation with GPT-Image models
 - **OpenAI Responses Format**: Support for `/v1/responses` and GPT-5 series with `reasoning_effort`, `response_format`, `verbosity`
 - **File Conversion**: MarkItDown and MinerU engines with batch processing and download
-- **MCP Support**: Model Context Protocol integration (enable via `ENABLE_MCP=true`)
+- **MCP Support**: Disabled by default; requires an access code and operator-managed local configuration
 - **Auto Update**: Automatic update detection and notification
 
 ## What's New
@@ -373,9 +373,14 @@ Set to `1` to disable parsing settings from URL parameters.
 
 #### `ENABLE_MCP` (optional)
 
-> Default: Empty
+> Default: `false`
 
-Set to `true` to enable the Model Context Protocol (MCP) feature.
+Set to `true` to enable the Model Context Protocol (MCP) feature. A non-empty
+`CODE` is required. MCP servers must be defined by the operator in
+`app/mcp/mcp_config.json`; the web UI and API cannot install servers or edit
+their process definitions.
+Treat that file as trusted code because its commands run on the server.
+After a production build, run `yarn test:cve-2026-7644` for the local HTTP security regression.
 
 ---
 
