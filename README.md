@@ -40,6 +40,7 @@ English / [简体中文](./README_CN.md) / [日本語](./README_JA.md) / [한국
 
 ## What's New
 
+- **v2.19.3**: Merged upstream changes, supported MinerU v0 and v1 APIs
 - **v2.19.2**: Renamed this fork to WengChat while retaining NextChat ecosystem compatibility
 - **v2.19.1**: Fixed bugs on File Conversion page, updated MinerU engine to latest API
 - **v2.19.0**: File Conversion page with MarkItDown & MinerU engines, Docker Compose profiles
@@ -98,8 +99,9 @@ docker compose up -d
 
 # Or start with optional services:
 docker compose --profile readfile up -d                   # with file reading service
-docker compose --profile mineru up -d                     # with MinerU API service
-docker compose --profile readfile --profile mineru up -d  # with both
+docker compose --profile mineru up -d                     # with stable MinerU v0 API (mineru-v0 also works)
+docker compose --profile mineru-v1 up -d                  # with preview MinerU v1 API
+docker compose --profile readfile --profile mineru up -d  # with file reading and stable MinerU
 ```
 
 ### Docker

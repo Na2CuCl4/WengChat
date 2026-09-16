@@ -1,6 +1,27 @@
 networks:
   wengchat-network:
 
+x-mineru-common: &mineru-common
+  container_name: mineru-api
+  restart: always
+  expose:
+    - 8000
+  networks:
+    - wengchat-network
+  environment:
+    MINERU_MODEL_SOURCE: local
+  ulimits:
+    memlock: -1
+    stack: 67108864
+  ipc: host
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            device_ids: ["0"]
+            capabilities: [gpu]
+
 services:
   wengchat:
     image: na2cucl4/wengchat:latest
@@ -40,34 +61,28 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000 || exit 1"]
 
-  mineru-api:
-    image: mineru:latest
-    container_name: mineru-api
-    restart: always
-    profiles:
-      - mineru
-    expose:
-      - 8000
-    networks:
-      - wengchat-network
-    environment:
-      MINERU_MODEL_SOURCE: local
+  mineru-v0:
+    <<: *mineru-common
+    image: mineru:${MINERU_TAG:-latest}
+    profiles: ["mineru", "mineru-v0"]
+    entrypoint: mineru-api
+    command:
+      --host 0.0.0.0
+      --port 8000
+      --allow-public-http-client
+      # --gpu-memory-utilization 0.5
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+
+  mineru-v1:
+    <<: *mineru-common
+    image: mineru:${MINERU_TAG:-latest}
+    profiles: ["mineru-v1"]
     entrypoint: mineru-kit
     command:
       api-server
       --host 0.0.0.0
       --port 8000
       # --gpu-memory-utilization 0.5
-    ulimits:
-      memlock: -1
-      stack: 67108864
-    ipc: host
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/v1/health || exit 1"]
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              device_ids: ["0"]
-              capabilities: [gpu]
