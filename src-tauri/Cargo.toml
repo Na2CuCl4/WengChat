@@ -1,6 +1,6 @@
 [package]
 name = "wengchat"
-version = "2.19.2"
+version = "2.19.3"
 description = "A cross platform app for LLM ChatBot."
 authors = ["Na2CuCl4", "Yidadaa"]
 license = "mit"

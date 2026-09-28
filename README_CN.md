@@ -40,12 +40,13 @@
 
 ## 更新日志
 
+- **v2.19.3**：合并上游更改，支持 MinerU v0 和 v1 API，修复 Bug
 - **v2.19.2**：将本 Fork 的发行标识更名为 WengChat，继续兼容 NextChat 生态
-- **v2.19.1**：修复"全部清除"按钮未重置转换日志、修复转换失败时无限重试循环、下载全部改为 zip 打包提取，更新 MinerU 引擎至最新 API（解析后端名称、OCR 语言、解析精度设置）
-- **v2.19.0**：文件转换页面（MarkItDown & MinerU 引擎），Docker Compose profiles（readfile, mineru），docker-build.sh 构建脚本
-- **v2.18.0**：OpenAI Responses 格式 `/v1/responses`，GPT-5 系列模型参数 `reasoning_effort` / `response_format` / `verbosity`，图生图，上传数量扩至 15 张
-- **v2.17.0**：自定义对话摘要模型，GPT-Image 文生图，修复切换页面多次同步问题
-- **v2.16.2**：文件上传支持，自动更新检测，多语言改进，服务端响应超时延长至 10 分钟
+- **v2.19.1**：修复文件转换页面的 Bug，更新 MinerU 引擎至最新 API
+- **v2.19.0**：文件转换页面（MarkItDown & MinerU 引擎），Docker Compose profiles
+- **v2.18.0**：OpenAI Responses 格式 `/v1/responses`，GPT-5 系列模型参数 `reasoning_effort` / `response_format` / `verbosity`，图生图
+- **v2.17.0**：自定义对话摘要模型，GPT-Image 系列文生图
+- **v2.16.2**：文件上传支持，自动更新检测，多语言改进
 - **v2.15.8**：支持 Realtime Chat [#5672](https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web/issues/5672)
 - **v2.15.4**：Tauri 拉取 LLM API，更安全 [#5379](https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web/issues/5379)
 - **v2.15.0**：支持插件！[NextChat-Awesome-Plugins](https://github.com/ChatGPTNextWeb/NextChat-Awesome-Plugins)

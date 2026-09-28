@@ -40,12 +40,13 @@
 
 ## 업데이트 소식
 
+- **v2.19.3**: 업스트림 변경 사항 병합, MinerU v0 및 v1 API 지원, 버그 수정
 - **v2.19.2**: 이 Fork의 배포 이름을 WengChat으로 변경하고 NextChat 생태계 호환성을 유지
-- **v2.19.1**: "전체 삭제" 버튼이 변환 로그를 초기화하지 않는 문제 수정, 변환 실패 시 무한 재시도 루프 수정, 전체 다운로드를 zip 패키지로 변경, MinerU 엔진 최신 API 업데이트 (백엔드 이름, OCR 언어, 파싱 정밀도 설정)
-- **v2.19.0**: 파일 변환 페이지 (MarkItDown & MinerU 엔진), Docker Compose profiles (readfile, mineru), docker-build.sh 스크립트
-- **v2.18.0**: OpenAI Responses 형식 `/v1/responses`, GPT-5 시리즈 `reasoning_effort` / `response_format` / `verbosity`, image-to-image 생성, 업로드 15장으로 확대
-- **v2.17.0**: 사용자 정의 대화 요약 모델, GPT-Image 패밀리 text-to-image 생성, 탭 전환 다중 동기화 문제 수정
-- **v2.16.2**: 파일 업로드 지원, 자동 업데이트 감지, 다국어 개선, 서버 응답 시간 10분으로 연장
+- **v2.19.1**: 파일 변환 페이지의 버그 수정, MinerU 엔진을 최신 API로 업데이트
+- **v2.19.0**: 파일 변환 페이지 (MarkItDown & MinerU 엔진), Docker Compose profiles
+- **v2.18.0**: OpenAI Responses 형식 `/v1/responses`, GPT-5 시리즈 `reasoning_effort` / `response_format` / `verbosity`, image-to-image 생성
+- **v2.17.0**: 사용자 정의 대화 요약 모델, GPT-Image 패밀리 text-to-image 생성
+- **v2.16.2**: 파일 업로드 지원, 자동 업데이트 감지, 다국어 개선
 - **v2.15.8**: 실시간 채팅 지원 [#5672](https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web/issues/5672)
 - **v2.15.4**: Tauri LLM API 호출, 보안 강화 [#5379](https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web/issues/5379)
 - **v2.15.0**: 플러그인 지원! [NextChat-Awesome-Plugins](https://github.com/ChatGPTNextWeb/NextChat-Awesome-Plugins)

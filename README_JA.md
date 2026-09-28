@@ -40,12 +40,13 @@
 
 ## 更新情報
 
+- **v2.19.3**：アップストリームの変更を取り込み、MinerU v0 / v1 APIに対応、バグを修正
 - **v2.19.2**：本 Fork の配布名を WengChat に変更し、NextChat エコシステムとの互換性を維持
-- **v2.19.1**：「すべてクリア」ボタンで変換ログがリセットされない問題を修正、変換失敗時の無限リトライループを修正、一括ダウンロードをzipパッケージ抽出に変更、MinerUエンジンを最新APIに対応（バックエンド名、OCR言語、解析精度設定）
-- **v2.19.0**：ファイル変換ページ（MarkItDown & MinerUエンジン）、Docker Compose profiles（readfile, mineru）、docker-build.shスクリプト
-- **v2.18.0**：OpenAI Responses形式`/v1/responses`、GPT-5シリーズ`reasoning_effort` / `response_format` / `verbosity`、image-to-image生成、アップロード上限15枚に拡大
-- **v2.17.0**：カスタム要約モデル、GPT-Imageファミリーtext-to-image生成、タブ切替時の複数同期問題を修正
-- **v2.16.2**：ファイルアップロード対応、自動更新検出、多言語改善、サーバー応答タイムアウト10分に延長
+- **v2.19.1**：ファイル変換ページのバグを修正し、MinerUエンジンを最新APIに対応
+- **v2.19.0**：ファイル変換ページ（MarkItDown & MinerUエンジン）、Docker Compose profiles
+- **v2.18.0**：OpenAI Responses形式`/v1/responses`、GPT-5シリーズ`reasoning_effort` / `response_format` / `verbosity`、image-to-image生成
+- **v2.17.0**：カスタム要約モデル、GPT-Imageファミリーtext-to-image生成
+- **v2.16.2**：ファイルアップロード対応、自動更新検出、多言語改善
 - **v2.15.8**：リアルタイムチャット対応 [#5672](https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web/issues/5672)
 - **v2.15.4**：TauriでLLM API取得、セキュリティ向上 [#5379](https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web/issues/5379)
 - **v2.15.0**：プラグイン対応！[NextChat-Awesome-Plugins](https://github.com/ChatGPTNextWeb/NextChat-Awesome-Plugins)
