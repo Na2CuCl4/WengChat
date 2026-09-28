@@ -218,13 +218,17 @@ export const useAppConfig = createPersistStore(
       const modelMap: Record<string, LLMModel> = {};
 
       for (const model of oldModels) {
-        model.available = false;
-        modelMap[`${model.name}@${model?.provider?.id}`] = model;
+        modelMap[`${model.name}@${model?.provider?.id}`] = {
+          ...model,
+          available: false,
+        };
       }
 
       for (const model of newModels) {
-        model.available = true;
-        modelMap[`${model.name}@${model?.provider?.id}`] = model;
+        modelMap[`${model.name}@${model?.provider?.id}`] = {
+          ...model,
+          available: true,
+        };
       }
 
       set(() => ({
@@ -244,7 +248,9 @@ export const useAppConfig = createPersistStore(
       const models = currentState.models.slice();
       state.models.forEach((pModel) => {
         const idx = models.findIndex(
-          (v) => v.name === pModel.name && v.provider === pModel.provider,
+          (v) =>
+            v.name === pModel.name &&
+            v.provider?.id.toLowerCase() === pModel.provider?.id.toLowerCase(),
         );
         if (idx !== -1) models[idx] = pModel;
         else models.push(pModel);

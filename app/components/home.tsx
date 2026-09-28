@@ -26,8 +26,8 @@ import { SideBar } from "./sidebar";
 import { useAppConfig } from "../store/config";
 import { AuthPage } from "./auth";
 import { getClientConfig } from "../config/client";
-import { type ClientApi, getClientApi } from "../client/api";
 import { useAccessStore } from "../store";
+import { ensureModelConfigsReady } from "../store/chat";
 import clsx from "clsx";
 import { initializeMcpSystem, isMcpEnabled } from "../mcp/api";
 
@@ -124,16 +124,6 @@ function useHtmlLang() {
   }, []);
 }
 
-const useHasHydrated = () => {
-  const [hasHydrated, setHasHydrated] = useState<boolean>(false);
-
-  useEffect(() => {
-    setHasHydrated(true);
-  }, []);
-
-  return hasHydrated;
-};
-
 const loadAsyncGoogleFont = () => {
   const linkEl = document.createElement("link");
   const proxyFontUrl = "/google-fonts";
@@ -221,29 +211,25 @@ function Screen() {
 }
 
 export function useLoadData() {
-  const config = useAppConfig();
-
-  const api: ClientApi = getClientApi(config.modelConfig.providerName);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      const models = await api.llm.models();
-      config.mergeModels(models);
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let cancelled = false;
+    ensureModelConfigsReady().then(() => {
+      if (!cancelled) setReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
+  return ready;
 }
 
 export function Home() {
   useSwitchTheme();
-  useLoadData();
+  const ready = useLoadData();
   useHtmlLang();
   const accessCode = useAccessStore((state) => state.accessCode.trim());
-
-  useEffect(() => {
-    console.log("[Config] got config from build time", getClientConfig());
-    useAccessStore.getState().fetch();
-  }, []);
 
   useEffect(() => {
     if (!accessCode) return;
@@ -267,7 +253,7 @@ export function Home() {
     };
   }, [accessCode]);
 
-  if (!useHasHydrated()) {
+  if (!ready) {
     return <Loading />;
   }
 

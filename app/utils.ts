@@ -296,8 +296,8 @@ export function isGptImage1(model: string) {
   return /^gpt-image/.test(model);
 }
 
-export function isGpt5Model(model: string) {
-  return model.startsWith("gpt-5");
+export function isGpt5Or6Model(model: string) {
+  return /^gpt-[56](?:$|[.-])/.test(model);
 }
 
 export function isImageGenerationModel(model: string) {

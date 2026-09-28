@@ -71,6 +71,7 @@ import {
   usePluginStore,
 } from "../store";
 import { useSyncStore } from "../store/sync";
+import { resolveSessionModelConfig } from "../store/chat";
 
 import {
   autoGrowTextArea,
@@ -87,7 +88,7 @@ import {
   useMobileScreen,
   selectOrCopy,
   showPlugins,
-  isGpt5Model,
+  isGpt5Or6Model,
 } from "../utils";
 
 import { uploadImage as uploadImageRemote } from "@/app/utils/chat";
@@ -587,23 +588,6 @@ export function ChatActions(props: {
       props.setUploading(false);
     }
 
-    // if current model is not available
-    // switch to first available model
-    const isUnavailableModel = !models.some((m) => m.name === currentModel);
-    if (isUnavailableModel && models.length > 0) {
-      // show next model to default model if exist
-      let nextModel = models.find((model) => model.isDefault) || models[0];
-      chatStore.updateTargetSession(session, (session) => {
-        session.mask.modelConfig.model = nextModel.name;
-        session.mask.modelConfig.providerName = nextModel?.provider
-          ?.providerName as ServiceProvider;
-      });
-      showToast(
-        nextModel?.provider?.providerName == "ByteDance"
-          ? nextModel.displayName
-          : nextModel.name,
-      );
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatStore, currentModel, models, session]);
 
@@ -710,21 +694,32 @@ export function ChatActions(props: {
             onSelection={(s) => {
               if (s.length === 0) return;
               const [model, providerName] = getModelProvider(s[0]);
+              const previous = { ...session.mask.modelConfig };
               chatStore.updateTargetSession(session, (session) => {
                 session.mask.modelConfig.model = model as ModelType;
                 session.mask.modelConfig.providerName =
                   providerName as ServiceProvider;
                 session.mask.syncGlobalConfig = false;
               });
-              if (providerName == "ByteDance") {
-                const selectedModel = models.find(
-                  (m) =>
-                    m.name == model &&
-                    m?.provider?.providerName == providerName,
+              const finalConfig = useChatStore
+                .getState()
+                .sessions.find((item) => item.id === session.id)?.mask
+                .modelConfig;
+              if (
+                finalConfig &&
+                (previous.model !== finalConfig.model ||
+                  previous.providerName !== finalConfig.providerName)
+              ) {
+                const selected = models.find(
+                  (item) =>
+                    item.name === finalConfig.model &&
+                    item.provider?.providerName === finalConfig.providerName,
                 );
-                showToast(selectedModel?.displayName ?? "");
-              } else {
-                showToast(model);
+                showToast(
+                  `${selected?.displayName ?? finalConfig.model} (${
+                    finalConfig.providerName
+                  })`,
+                );
               }
             }}
           />
@@ -811,7 +806,7 @@ export function ChatActions(props: {
           />
         )}
 
-        {isGpt5Model(currentModel) && (
+        {isGpt5Or6Model(currentModel) && (
           <ChatAction
             onClick={() => setShowReasoningEffortSelector(true)}
             text={`${Locale.Chat.InputActions.ReasoningEffort}: ${currentReasoningEffort}`}
@@ -842,7 +837,7 @@ export function ChatActions(props: {
           />
         )}
 
-        {isGpt5Model(currentModel) && (
+        {isGpt5Or6Model(currentModel) && (
           <ChatAction
             onClick={() => setShowVerbositySelector(true)}
             text={`${Locale.Chat.InputActions.Verbosity}: ${currentVerbosity}`}
@@ -867,7 +862,7 @@ export function ChatActions(props: {
           />
         )}
 
-        {isGpt5Model(currentModel) && (
+        {isGpt5Or6Model(currentModel) && (
           <ChatAction
             onClick={() => setShowResponseFormatSelector(true)}
             text={`${Locale.Chat.InputActions.ResponseFormat}: ${currentResponseFormat}`}
@@ -1245,13 +1240,23 @@ function _Chat() {
     }
     setIsLoading(true);
     chatStore
-      .onUserInput(userInput, attachImages, attachFiles)
-      .then(() => setIsLoading(false));
-    setAttachImages([]);
-    setAttachFiles([]);
-    chatStore.setLastInput(userInput);
-    setUserInput("");
-    setPromptHints([]);
+      .onUserInput(userInput, attachImages, attachFiles, false, session)
+      .then(() => {
+        setIsLoading(false);
+        setAttachImages((current) =>
+          current.filter((image) => !attachImages.includes(image)),
+        );
+        setAttachFiles((current) =>
+          current.filter((file) => !attachFiles.includes(file)),
+        );
+        chatStore.setLastInput(userInput);
+        setUserInput((current) => (current === userInput ? "" : current));
+        setPromptHints([]);
+      })
+      .catch((error) => {
+        setIsLoading(false);
+        showToast((error as Error).message);
+      });
     if (!isMobileScreen) inputRef.current?.focus();
     setAutoScroll(true);
   };
@@ -1297,15 +1302,16 @@ function _Chat() {
           }
         }
       });
-
-      // auto sync mask config from global config
-      if (session.mask.syncGlobalConfig) {
-        console.log("[Mask] syncing from global, name = ", session.mask.name);
-        session.mask.modelConfig = { ...config.modelConfig };
-      }
     });
+    if (session.mask.syncGlobalConfig) {
+      try {
+        resolveSessionModelConfig(session);
+      } catch (error) {
+        showToast((error as Error).message);
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
+  }, [session, config.modelConfig]);
 
   // check if should send message
   const onInputKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -1391,6 +1397,13 @@ function _Chat() {
       return;
     }
 
+    const oldMessages = [userMessage, botMessage].filter(
+      (item): item is ChatMessage => !!item,
+    );
+    const oldIndices = oldMessages.map((item) =>
+      session.messages.findIndex((current) => current.id === item.id),
+    );
+
     // delete the original messages
     deleteMessage(userMessage.id);
     deleteMessage(botMessage?.id);
@@ -1417,12 +1430,27 @@ function _Chat() {
     setAttachFiles(files);
 
     // pass both images and files when resending
-    chatStore.onUserInput(textContent, images, files).then(() => {
-      setIsLoading(false);
-      // clear previews after resend completes (consistent with doSubmit)
-      setAttachImages([]);
-      setAttachFiles([]);
-    });
+    chatStore
+      .onUserInput(textContent, images, files, false, session)
+      .then(() => {
+        setIsLoading(false);
+        setAttachImages([]);
+        setAttachFiles([]);
+      })
+      .catch((error) => {
+        chatStore.updateTargetSession(session, (target) => {
+          oldMessages
+            .map((item, index) => ({ item, index: oldIndices[index] }))
+            .sort((a, b) => a.index - b.index)
+            .forEach(({ item, index }) => {
+              if (!target.messages.some((message) => message.id === item.id)) {
+                target.messages.splice(index, 0, item);
+              }
+            });
+        });
+        setIsLoading(false);
+        showToast((error as Error).message);
+      });
     inputRef.current?.focus();
   };
 
@@ -2375,7 +2403,7 @@ function _Chat() {
                 setShowChatSidePanel={setShowChatSidePanel}
               />
 
-              {isGpt5Model(session.mask.modelConfig.model) &&
+              {isGpt5Or6Model(session.mask.modelConfig.model) &&
                 session.mask.modelConfig.response_format === "json_schema" && (
                   <div className={styles["json-schema-editor"]}>
                     <div className={styles["json-schema-label"]}>

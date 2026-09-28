@@ -159,9 +159,12 @@ export function base64Image2Blob(base64Data: string, contentType: string) {
 }
 
 export function uploadImage(file: Blob): Promise<string> {
-  if (!window._SW_ENABLED) {
-    // if serviceWorker register error, using compressImage
-    return compressImage(file, 256 * 1024);
+  const fallback = () =>
+    file.type.startsWith("image/")
+      ? compressImage(file, 256 * 1024)
+      : Promise.reject(new Error("Service Worker image cache is unavailable"));
+  if (!navigator.serviceWorker?.controller) {
+    return fallback();
   }
   const body = new FormData();
   body.append("file", file);
@@ -171,14 +174,18 @@ export function uploadImage(file: Blob): Promise<string> {
     mode: "cors",
     credentials: "include",
   })
-    .then((res) => res.json())
+    .then((res) => {
+      if (!res.ok) throw Error(`upload Error: HTTP ${res.status}`);
+      return res.json();
+    })
     .then((res) => {
       // console.log("res", res);
-      if (res?.code == 0 && res?.data) {
-        return res?.data;
+      if (res?.code == 0 && typeof res?.data === "string" && res.data) {
+        return res.data;
       }
       throw Error(`upload Error: ${res?.msg}`);
-    });
+    })
+    .catch(fallback);
 }
 
 export function removeImage(imageUrl: string) {

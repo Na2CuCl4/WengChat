@@ -23,10 +23,7 @@ import { getHeaders } from "../client/api";
 import { getClientConfig } from "../config/client";
 import { createPersistStore } from "../utils/store";
 import { ensure } from "../utils/clone";
-import { DEFAULT_CONFIG, useAppConfig, ModelType } from "./config";
-import { getModelProvider } from "../utils/model";
-
-let fetchState = 0; // 0 not fetch, 1 fetching, 2 done
+let configFetch: Promise<boolean> | undefined;
 
 const isApp = getClientConfig()?.buildMode === "export";
 
@@ -251,53 +248,28 @@ export const useAccessStore = createPersistStore(
       );
     },
     fetch() {
-      if (fetchState > 0 || getClientConfig()?.buildMode === "export") return;
-      fetchState = 1;
-      fetch("/api/config", {
-        method: "post",
-        body: null,
-        headers: {
-          ...getHeaders(),
-        },
-      })
-        .then((res) => res.json())
-        .then((res) => {
-          const defaultModel = res.defaultModel ?? "";
-          if (defaultModel !== "") {
-            const [model, providerName] = getModelProvider(defaultModel);
-            DEFAULT_CONFIG.modelConfig.model = model;
-            DEFAULT_CONFIG.modelConfig.providerName = providerName as any;
-            DEFAULT_CONFIG.modelConfig.compressModel = model;
-            DEFAULT_CONFIG.modelConfig.compressProviderName =
-              providerName as any;
-            console.log("[Config] got default model from server", defaultModel);
-            console.log(DEFAULT_CONFIG.modelConfig);
-
-            if (useAppConfig.getState().modelConfig.model === "") {
-              useAppConfig.setState((state) => ({
-                modelConfig: {
-                  ...state.modelConfig,
-                  model: model as ModelType,
-                  providerName: providerName as ServiceProvider,
-                  compressModel: model as ModelType,
-                  compressProviderName: providerName as ServiceProvider,
-                },
-              }));
-            }
-          }
-
-          return res;
+      if (getClientConfig()?.buildMode === "export")
+        return Promise.resolve(true);
+      if (configFetch) return configFetch;
+      // getHeaders calls enabledAccessControl, which calls fetch again.
+      configFetch = Promise.resolve()
+        .then(async () => {
+          const response = await fetch("/api/config", {
+            method: "post",
+            body: null,
+            headers: { ...getHeaders() },
+          });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const config = (await response.json()) as DangerConfig;
+          set(() => ({ ...config }));
+          return true;
         })
-        .then((res: DangerConfig) => {
-          console.log("[Config] got config from server", res);
-          set(() => ({ ...res }));
-        })
-        .catch(() => {
-          console.error("[Config] failed to fetch config");
-        })
-        .finally(() => {
-          fetchState = 2;
+        .catch((error) => {
+          console.error("[Config] failed to fetch config", error);
+          configFetch = undefined;
+          return false;
         });
+      return configFetch;
     },
   }),
   {

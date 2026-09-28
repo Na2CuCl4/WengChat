@@ -45,6 +45,7 @@ import {
   isImageGenerationModel as _isImageGenerationModel,
   getTimeoutMSByModel,
   getMessageImages,
+  isGpt5Or6Model,
 } from "@/app/utils";
 import { fetch } from "@/app/utils/stream";
 
@@ -218,7 +219,7 @@ export class ChatGPTApi implements LLMApi {
       options.config.model.startsWith("o1") ||
       options.config.model.startsWith("o3") ||
       options.config.model.startsWith("o4-mini");
-    const isGpt5 = options.config.model.startsWith("gpt-5");
+    const isGpt5Or6 = isGpt5Or6Model(options.config.model);
     if (isDalle3) {
       const prompt = getMessageTextContent(
         options.messages.slice(-1)?.pop() as any,
@@ -266,7 +267,7 @@ export class ChatGPTApi implements LLMApi {
         stream: options.config.stream,
         model: modelConfig.model,
         ...(!isO1OrO3 &&
-          !isGpt5 &&
+          !isGpt5Or6 &&
           modelConfig.temperature !== 1 && {
             temperature: modelConfig.temperature,
           }),
@@ -278,7 +279,7 @@ export class ChatGPTApi implements LLMApi {
         // Please do not ask me why not send max_tokens, no reason, this param is just shit, I dont want to explain anymore.
       };
 
-      if (isGpt5) {
+      if (isGpt5Or6) {
         // Remove max_tokens if present
         delete requestPayload.max_tokens;
         // Add max_completion_tokens (or max_completion_tokens if that's what you meant)
@@ -319,7 +320,7 @@ export class ChatGPTApi implements LLMApi {
       }
 
       // add max_tokens to vision model
-      if (visionModel && !isO1OrO3 && !isGpt5) {
+      if (visionModel && !isO1OrO3 && !isGpt5Or6) {
         requestPayload["max_tokens"] = Math.max(modelConfig.max_tokens, 4000);
       }
     }

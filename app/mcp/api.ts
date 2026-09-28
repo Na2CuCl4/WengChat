@@ -28,10 +28,17 @@ function authorizedHeaders() {
   };
 }
 
+let mcpEnabledRequest: Promise<boolean> | undefined;
+
 export async function isMcpEnabled() {
   if (getClientConfig()?.buildMode === "export") return false;
-  const response = await fetch("/api/mcp?action=enabled");
-  return (await readResponse<{ enabled: boolean }>(response)).enabled;
+  return (mcpEnabledRequest ??= fetch("/api/mcp?action=enabled")
+    .then((response) => readResponse<{ enabled: boolean }>(response))
+    .then(({ enabled }) => enabled)
+    .catch((error) => {
+      mcpEnabledRequest = undefined;
+      throw error;
+    }));
 }
 
 export async function initializeMcpSystem() {

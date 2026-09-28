@@ -21,7 +21,11 @@ import {
   SpeechOptions,
 } from "../api";
 import { getClientConfig } from "@/app/config/client";
-import { getMessageTextContent, isVisionModel } from "@/app/utils";
+import {
+  getMessageTextContent,
+  isGpt5Or6Model,
+  isVisionModel,
+} from "@/app/utils";
 import { fetch } from "@/app/utils/stream";
 
 export interface ResponsesMultimodalContent {
@@ -113,7 +117,7 @@ export class OpenAIResponsesApi implements LLMApi {
       stream: options.config.stream,
     };
 
-    if (modelConfig.model.startsWith("gpt-5")) {
+    if (isGpt5Or6Model(modelConfig.model)) {
       const effort = modelConfig.reasoning_effort ?? "medium";
       if (effort !== "medium")
         (requestPayload as any)["reasoning"] = { effort };

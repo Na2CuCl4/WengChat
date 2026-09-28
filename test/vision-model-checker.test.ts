@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { isVisionModel } from "../app/utils";
+import { isGpt5Or6Model, isVisionModel } from "../app/utils";
 
 describe("isVisionModel", () => {
   const originalEnv = process.env;
@@ -25,6 +25,9 @@ describe("isVisionModel", () => {
       "qwen2-vl-max",
       "gpt-4-turbo",
       "dall-e-3",
+      "gpt-5.4",
+      "gpt-6",
+      "gpt-6-sol",
     ];
 
     visionModels.forEach((model) => {
@@ -42,11 +45,18 @@ describe("isVisionModel", () => {
       "gpt-4-turbo-preview",
       "claude-2",
       "regular-model",
+      "gpt-60",
     ];
 
     nonVisionModels.forEach((model) => {
       expect(isVisionModel(model)).toBe(false);
     });
+  });
+
+  test("uses GPT-5 and GPT-6 request settings only for those families", () => {
+    expect(isGpt5Or6Model("gpt-5.4-pro")).toBe(true);
+    expect(isGpt5Or6Model("gpt-6-sol")).toBe(true);
+    expect(isGpt5Or6Model("gpt-60")).toBe(false);
   });
 
   test("should identify models from VISION_MODELS env var", () => {

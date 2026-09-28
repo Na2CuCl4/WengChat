@@ -36,6 +36,38 @@ describe("collectModelTableWithDefaultModel", () => {
     const table = collectModelTableWithDefaultModel(DEFAULT_MODELS, "", "");
     expect(Object.values(table).some((m) => m.isDefault)).toBe(false);
   });
+
+  test("matches a qualified default despite provider casing", () => {
+    const table = collectModelTableWithDefaultModel(
+      DEFAULT_MODELS,
+      "",
+      "gpt-4@OpenAI",
+    );
+    expect(table["gpt-4@openai"].isDefault).toBe(true);
+    expect(Object.values(table).filter((m) => m.isDefault)).toHaveLength(1);
+  });
+
+  test("does not flag a disabled default model", () => {
+    const table = collectModelTableWithDefaultModel(
+      DEFAULT_MODELS,
+      "-gpt-4@openai",
+      "gpt-4@OpenAI",
+    );
+    expect(Object.values(table).some((m) => m.isDefault)).toBe(false);
+  });
+
+  test("matches ByteDance's logical name after an endpoint alias is set", () => {
+    const table = collectModelTableWithDefaultModel(
+      DEFAULT_MODELS,
+      "+Doubao-lite-4k@bytedance=ep-xxx",
+      "Doubao-lite-4k@bytedance",
+    );
+    expect(table["Doubao-lite-4k@bytedance"]).toMatchObject({
+      name: "ep-xxx",
+      displayName: "Doubao-lite-4k",
+      isDefault: true,
+    });
+  });
 });
 
 describe("collectModelsWithDefaultModel", () => {

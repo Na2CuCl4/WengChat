@@ -31,12 +31,98 @@ import { createPersistStore } from "../utils/store";
 import { estimateTokenLength } from "../utils/token";
 import { ModelConfig, ModelType, useAppConfig } from "./config";
 import { useAccessStore } from "./access";
-import { collectModelsWithDefaultModel } from "../utils/model";
+import {
+  collectModelsWithDefaultModel,
+  resolveModelConfig,
+} from "../utils/model";
 import { createEmptyMask, Mask } from "./mask";
 import { executeMcpAction, getAllTools, isMcpEnabled } from "../mcp/api";
 import { extractMcpJson, isMcpJson } from "../mcp/utils";
 
 const localStorage = safeLocalStorage();
+
+function availableModels() {
+  const config = useAppConfig.getState();
+  const access = useAccessStore.getState();
+  return collectModelsWithDefaultModel(
+    config.models,
+    [config.customModels, access.customModels].join(","),
+    access.defaultModel,
+  );
+}
+
+function sameModels(a: ModelConfig, b: ModelConfig) {
+  return (
+    a.model === b.model &&
+    a.providerName === b.providerName &&
+    a.compressModel === b.compressModel &&
+    a.compressProviderName === b.compressProviderName
+  );
+}
+
+function showModelToast(config: ModelConfig) {
+  const model = availableModels().find(
+    (item) =>
+      item.available &&
+      item.name === config.model &&
+      item.provider?.providerName === config.providerName,
+  );
+  showToast(`${model?.displayName ?? config.model} (${config.providerName})`);
+}
+
+let modelConfigReady = false;
+let modelConfigLoad: Promise<boolean> | undefined;
+
+function waitForHydration(store: {
+  getState: () => { _hasHydrated: boolean };
+  subscribe: (
+    listener: (state: { _hasHydrated: boolean }) => void,
+  ) => () => void;
+}) {
+  if (store.getState()._hasHydrated) return Promise.resolve();
+  return new Promise<void>((resolve) => {
+    const unsubscribe = store.subscribe((state) => {
+      if (state._hasHydrated) {
+        unsubscribe();
+        resolve();
+      }
+    });
+    if (store.getState()._hasHydrated) {
+      unsubscribe();
+      resolve();
+    }
+  });
+}
+
+export function ensureModelConfigsReady(): Promise<boolean> {
+  if (modelConfigReady) return Promise.resolve(true);
+  if (modelConfigLoad) return modelConfigLoad;
+  modelConfigLoad = Promise.all([
+    waitForHydration(useAppConfig),
+    waitForHydration(useAccessStore),
+    waitForHydration(useChatStore),
+  ])
+    .then(async () => {
+      if (!(await useAccessStore.getState().fetch())) return false;
+      const config = useAppConfig.getState();
+      const models = await getClientApi(
+        config.modelConfig.providerName,
+      ).llm.models();
+      useAppConfig.getState().mergeModels([...DEFAULT_MODELS, ...models]);
+      reconcileModelConfigs();
+      modelConfigReady = true;
+      return true;
+    })
+    .catch((error) => {
+      console.error("[Models] failed to load models", error);
+      return false;
+    })
+    .then((ready) => {
+      if (!ready) modelConfigLoad = undefined;
+      return ready;
+    });
+  return modelConfigLoad;
+}
 
 export type ChatMessageTool = {
   id: string;
@@ -213,17 +299,126 @@ const DEFAULT_CHAT_STATE = {
   lastInput: "",
 };
 
+type ChatStoreMethods = {
+  forkSession(): void;
+  clearSessions(): void;
+  selectSession(index: number): void;
+  moveSession(from: number, to: number): void;
+  newSession(mask?: Mask): void;
+  nextSession(delta: number): void;
+  deleteSession(index: number): void;
+  currentSession(): ChatSession;
+  onNewMessage(message: ChatMessage, targetSession: ChatSession): void;
+  onUserInput(
+    content: string,
+    attachImages?: string[],
+    attachFiles?: AttachedFile[],
+    isMcpResponse?: boolean,
+    targetSession?: ChatSession,
+  ): Promise<void>;
+  getMemoryPrompt(session?: ChatSession): ChatMessage | undefined;
+  getMessagesWithMemory(session?: ChatSession): Promise<ChatMessage[]>;
+  updateMessage(
+    sessionIndex: number,
+    messageIndex: number,
+    updater: (message?: ChatMessage) => void,
+  ): void;
+  resetSession(session: ChatSession): void;
+  summarizeSession(
+    refreshTitle: boolean,
+    targetSession: ChatSession,
+  ): Promise<void>;
+  updateStat(message: ChatMessage, session: ChatSession): void;
+  updateTargetSession(
+    targetSession: ChatSession,
+    updater: (session: ChatSession) => void,
+  ): void;
+  clearAllData(): Promise<void>;
+  setLastInput(lastInput: string): void;
+  checkMcpJson(message: ChatMessage): Promise<void>;
+};
+
+function reconcileModelConfigs() {
+  const models = availableModels();
+  const globalConfig = useAppConfig.getState().modelConfig;
+  const resolvedGlobal = resolveModelConfig(globalConfig, models);
+  if (!resolvedGlobal) return false;
+  if (!sameModels(globalConfig, resolvedGlobal)) {
+    useAppConfig.setState({ modelConfig: resolvedGlobal });
+  }
+
+  const { sessions, currentSessionIndex } = useChatStore.getState();
+  const currentId = sessions[currentSessionIndex]?.id;
+  let currentModelChanged = false;
+  sessions.forEach((session) => {
+    const next = session.mask.syncGlobalConfig
+      ? { ...resolvedGlobal }
+      : resolveModelConfig(session.mask.modelConfig, models);
+    if (!next) return;
+    if (session.id === currentId) {
+      currentModelChanged =
+        session.mask.modelConfig.model !== next.model ||
+        session.mask.modelConfig.providerName !== next.providerName;
+    }
+    if (
+      session.mask.syncGlobalConfig ||
+      !sameModels(session.mask.modelConfig, next)
+    ) {
+      session.mask.modelConfig = next;
+    }
+  });
+  useChatStore.setState({ sessions: [...sessions] });
+  if (currentModelChanged) {
+    showModelToast(sessions[currentSessionIndex].mask.modelConfig);
+  }
+  return true;
+}
+
+export function resolveSessionModelConfig(session: ChatSession): ModelConfig {
+  if (!modelConfigReady) {
+    throw new Error("Failed to load server model configuration");
+  }
+  const { sessions, currentSessionIndex } = useChatStore.getState();
+  const target = sessions.find((item) => item.id === session.id);
+  if (!target) throw new Error("Chat session is no longer available");
+  const models = availableModels();
+  const globalConfig = useAppConfig.getState().modelConfig;
+  const resolvedGlobal = resolveModelConfig(globalConfig, models);
+  if (!resolvedGlobal) throw new Error("No available model is configured");
+  if (!sameModels(globalConfig, resolvedGlobal)) {
+    useAppConfig.setState({ modelConfig: resolvedGlobal });
+  }
+  const source = target.mask.syncGlobalConfig
+    ? resolvedGlobal
+    : target.mask.modelConfig;
+  const resolved = resolveModelConfig(source, models)!;
+  const changed =
+    target.mask.modelConfig.model !== resolved.model ||
+    target.mask.modelConfig.providerName !== resolved.providerName;
+  if (
+    target.mask.syncGlobalConfig ||
+    !sameModels(target.mask.modelConfig, resolved)
+  ) {
+    target.mask.modelConfig = resolved;
+    useChatStore.setState({ sessions: [...sessions] });
+    if (changed && target.id === sessions[currentSessionIndex]?.id) {
+      showModelToast(resolved);
+    }
+  }
+  return resolved;
+}
+
 export const useChatStore = createPersistStore(
   DEFAULT_CHAT_STATE,
   (set, _get) => {
-    function get() {
+    function get(): ReturnType<typeof _get> & ChatStoreMethods {
       return {
         ..._get(),
         ...methods,
       };
     }
 
-    const methods = {
+    const methods: ChatStoreMethods = {
       forkSession() {
         // 获取当前会话
         const currentSession = get().currentSession();
@@ -261,6 +456,13 @@ export const useChatStore = createPersistStore(
         set({
           currentSessionIndex: index,
         });
+        if (modelConfigReady) {
+          try {
+            resolveSessionModelConfig(get().currentSession());
+          } catch (error) {
+            showToast((error as Error).message);
+          }
+        }
       },
 
       moveSession(from: number, to: number) {
@@ -309,6 +511,13 @@ export const useChatStore = createPersistStore(
           currentSessionIndex: 0,
           sessions: [session].concat(state.sessions),
         }));
+        if (modelConfigReady) {
+          try {
+            resolveSessionModelConfig(session);
+          } catch (error) {
+            showToast((error as Error).message);
+          }
+        }
       },
 
       nextSession(delta: number) {
@@ -393,9 +602,13 @@ export const useChatStore = createPersistStore(
         attachImages?: string[],
         attachFiles?: AttachedFile[],
         isMcpResponse?: boolean,
+        targetSession?: ChatSession,
       ) {
-        const session = get().currentSession();
-        const modelConfig = session.mask.modelConfig;
+        const session = targetSession ?? get().currentSession();
+        if (!(await ensureModelConfigsReady())) {
+          throw new Error("Failed to load server model configuration");
+        }
+        const modelConfig = resolveSessionModelConfig(session);
 
         // MCP Response no need to fill template
         let mContent: string | MultimodalContent[] = isMcpResponse
@@ -462,7 +675,7 @@ export const useChatStore = createPersistStore(
         });
 
         // get recent messages
-        const recentMessages = await get().getMessagesWithMemory();
+        const recentMessages = await get().getMessagesWithMemory(session);
         const sendMessages = recentMessages.concat(userMessage);
         const messageIndex = session.messages.length + 1;
 
@@ -549,9 +762,7 @@ export const useChatStore = createPersistStore(
         });
       },
 
-      getMemoryPrompt() {
-        const session = get().currentSession();
-
+      getMemoryPrompt(session: ChatSession = get().currentSession()) {
         if (session.memoryPrompt.length) {
           return {
             role: "system",
@@ -561,8 +772,9 @@ export const useChatStore = createPersistStore(
         }
       },
 
-      async getMessagesWithMemory() {
-        const session = get().currentSession();
+      async getMessagesWithMemory(
+        session: ChatSession = get().currentSession(),
+      ) {
         const modelConfig = session.mask.modelConfig;
         const clearContextIndex = session.clearContextIndex ?? 0;
         const messages = session.messages.slice();
@@ -608,7 +820,7 @@ export const useChatStore = createPersistStore(
             systemPrompts.at(0)?.content ?? "empty",
           );
         }
-        const memoryPrompt = get().getMemoryPrompt();
+        const memoryPrompt = get().getMemoryPrompt(session);
         // long term memory
         const shouldSendLongTermMemory =
           modelConfig.sendMemory &&
@@ -680,13 +892,23 @@ export const useChatStore = createPersistStore(
         });
       },
 
-      summarizeSession(
+      async summarizeSession(
         refreshTitle: boolean = false,
         targetSession: ChatSession,
       ) {
         const config = useAppConfig.getState();
         const session = targetSession;
-        const modelConfig = session.mask.modelConfig;
+        if (!(await ensureModelConfigsReady())) {
+          showToast("Failed to load server model configuration");
+          return;
+        }
+        let modelConfig: ModelConfig;
+        try {
+          modelConfig = resolveSessionModelConfig(session);
+        } catch (error) {
+          showToast((error as Error).message);
+          return;
+        }
         const isImageGen = isImageGenerationModel(modelConfig.model);
         const model = modelConfig.compressModel || modelConfig.model;
         const providerName =
@@ -758,7 +980,7 @@ export const useChatStore = createPersistStore(
             Math.max(0, n - modelConfig.historyMessageCount),
           );
         }
-        const memoryPrompt = get().getMemoryPrompt();
+        const memoryPrompt = get().getMemoryPrompt(session);
         if (memoryPrompt) {
           // add memory prompt
           toBeSummarizedMsgs.unshift(memoryPrompt);
@@ -844,9 +1066,8 @@ export const useChatStore = createPersistStore(
       /** check if the message contains MCP JSON and execute the MCP action */
       async checkMcpJson(message: ChatMessage) {
         try {
-          if (!(await isMcpEnabled())) return;
           const content = getMessageTextContent(message);
-          if (isMcpJson(content)) {
+          if (isMcpJson(content) && (await isMcpEnabled())) {
             const mcpRequest = extractMcpJson(content);
             if (mcpRequest) {
               console.debug("[MCP Request]", mcpRequest);

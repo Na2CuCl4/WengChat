@@ -1,5 +1,6 @@
 import { DEFAULT_MODELS, ServiceProvider } from "../constant";
 import { LLMModel } from "../client/api";
+import type { ModelConfig, ModelType } from "../store/config";
 
 const CustomSeq = {
   val: -1000, //To ensure the custom model located at front, start from -1000, refer to constant.ts
@@ -17,7 +18,10 @@ const CustomSeq = {
 
 const customProvider = (providerName: string) => ({
   id: providerName.toLowerCase(),
-  providerName: providerName,
+  providerName:
+    Object.values(ServiceProvider).find(
+      (name) => name.toLowerCase() === providerName.toLowerCase(),
+    ) ?? providerName,
   providerType: "custom",
   sorted: CustomSeq.next(providerName),
 });
@@ -97,7 +101,7 @@ export function collectModelTable(
           if (
             customModelName == modelName &&
             (customProviderName === undefined ||
-              customProviderName === providerName)
+              customProviderName.toLowerCase() === providerName?.toLowerCase())
           ) {
             count += 1;
             modelTable[fullName]["available"] = available;
@@ -142,19 +146,18 @@ export function collectModelTableWithDefaultModel(
 ) {
   let modelTable = collectModelTable(models, customModels);
   if (defaultModel && defaultModel !== "") {
-    if (defaultModel.includes("@")) {
-      if (defaultModel in modelTable) {
-        modelTable[defaultModel].isDefault = true;
-      }
-    } else {
-      for (const key of Object.keys(modelTable)) {
-        if (
-          modelTable[key].available &&
-          getModelProvider(key)[0] == defaultModel
-        ) {
-          modelTable[key].isDefault = true;
-          break;
-        }
+    const [name, provider] = getModelProvider(defaultModel);
+    for (const key of Object.keys(modelTable)) {
+      const model = modelTable[key];
+      if (
+        model.available &&
+        (model.name === name || getModelProvider(key)[0] === name) &&
+        (!provider ||
+          model.provider?.id.toLowerCase() === provider.toLowerCase() ||
+          model.provider?.providerName.toLowerCase() === provider.toLowerCase())
+      ) {
+        model.isDefault = true;
+        break;
       }
     }
   }
@@ -191,6 +194,34 @@ export function collectModelsWithDefaultModel(
   allModels = sortModelTable(allModels);
 
   return allModels;
+}
+
+export function resolveModelConfig(
+  config: ModelConfig,
+  models: ReturnType<typeof collectModelsWithDefaultModel>,
+): ModelConfig | undefined {
+  const available = models.filter((model) => model.available);
+  const fallback = available.find((model) => model.isDefault) ?? available[0];
+  if (!fallback) return undefined;
+
+  const find = (name: string, providerName: string) =>
+    available.find(
+      (model) =>
+        model.name === name &&
+        (model.provider?.providerName.toLowerCase() ===
+          providerName?.toLowerCase() ||
+          model.provider?.id.toLowerCase() === providerName?.toLowerCase()),
+    ) ?? fallback;
+
+  const main = find(config.model, config.providerName);
+  const summary = find(config.compressModel, config.compressProviderName);
+  return {
+    ...config,
+    model: main.name as ModelType,
+    providerName: main.provider!.providerName as ServiceProvider,
+    compressModel: summary.name as ModelType,
+    compressProviderName: summary.provider!.providerName as ServiceProvider,
+  };
 }
 
 export function isModelAvailableInServer(
