@@ -95,7 +95,7 @@ const vi: PartialLocaleType = {
     Download: "Tải xuống tệp",
     Share: "Chia sẻ lên ShareGPT",
     MessageFromYou: "Người dùng",
-    MessageFromChatGPT: "ChatGPT",
+    MessageFromChatGPT: "Trợ lý AI",
     Format: {
       Title: "Định dạng xuất khẩu",
       SubTitle: "Có thể xuất khẩu dưới dạng văn bản Markdown hoặc hình ảnh PNG",
@@ -169,7 +169,7 @@ const vi: PartialLocaleType = {
     InjectSystemPrompts: {
       Title: "Tiêm thông báo hệ thống",
       SubTitle:
-        "Buộc thêm một thông báo hệ thống giả ChatGPT vào đầu danh sách tin nhắn mỗi lần yêu cầu",
+        "Buộc thêm một thông báo hệ thống giả lập trợ lý AI vào đầu danh sách tin nhắn mỗi lần yêu cầu",
     },
     InputTemplate: {
       Title: "Xử lý đầu vào của người dùng",

@@ -98,7 +98,7 @@ const no: PartialLocaleType = {
     Download: "Last ned fil",
     Share: "Del til ShareGPT",
     MessageFromYou: "Bruker",
-    MessageFromChatGPT: "ChatGPT",
+    MessageFromChatGPT: "AI-assistent",
     Format: {
       Title: "Eksporterformat",
       SubTitle: "Kan eksporteres som Markdown-tekst eller PNG-bilde",
@@ -173,7 +173,7 @@ const no: PartialLocaleType = {
     InjectSystemPrompts: {
       Title: "Injiser systemprompter",
       SubTitle:
-        "Tving inn et systemprompt som simulerer ChatGPT i starten av hver forespørsel",
+        "Tving inn et systemprompt som simulerer en AI-assistent i starten av hver forespørsel",
     },
     InputTemplate: {
       Title: "Forhåndsbehandling av brukerinput",

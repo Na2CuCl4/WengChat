@@ -95,7 +95,7 @@ const ru: PartialLocaleType = {
     Download: "Скачать файл",
     Share: "Поделиться в ShareGPT",
     MessageFromYou: "Пользователь",
-    MessageFromChatGPT: "ChatGPT",
+    MessageFromChatGPT: "ИИ-ассистент",
     Format: {
       Title: "Формат экспорта",
       SubTitle: "Можно экспортировать как Markdown текст или PNG изображение",
@@ -169,7 +169,7 @@ const ru: PartialLocaleType = {
     InjectSystemPrompts: {
       Title: "Вставить системные подсказки",
       SubTitle:
-        "Принудительно добавлять системную подсказку, имитирующую ChatGPT, в начале каждого запроса",
+        "Принудительно добавлять системную подсказку, имитирующую ИИ-ассистента, в начале каждого запроса",
     },
     InputTemplate: {
       Title: "Предварительная обработка пользовательского ввода",

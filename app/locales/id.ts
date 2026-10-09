@@ -95,7 +95,7 @@ const id: PartialLocaleType = {
     Download: "Unduh File",
     Share: "Bagikan ke ShareGPT",
     MessageFromYou: "Pengguna",
-    MessageFromChatGPT: "ChatGPT",
+    MessageFromChatGPT: "Asisten AI",
     Format: {
       Title: "Format Ekspor",
       SubTitle: "Dapat mengekspor teks Markdown atau gambar PNG",
@@ -170,7 +170,7 @@ const id: PartialLocaleType = {
     InjectSystemPrompts: {
       Title: "Suntikkan Pesan Sistem",
       SubTitle:
-        "Memaksa menambahkan pesan sistem simulasi ChatGPT di awal daftar pesan setiap permintaan",
+        "Memaksa menambahkan pesan sistem simulasi asisten AI di awal daftar pesan setiap permintaan",
     },
     InputTemplate: {
       Title: "Pra-pemrosesan Input Pengguna",

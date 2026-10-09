@@ -95,7 +95,7 @@ const bn: PartialLocaleType = {
     Download: "ফাইল ডাউনলোড করুন",
     Share: "ShareGPT তে শেয়ার করুন",
     MessageFromYou: "ব্যবহারকারী",
-    MessageFromChatGPT: "ChatGPT",
+    MessageFromChatGPT: "এআই সহকারী",
     Format: {
       Title: "রপ্তানির ফর্ম্যাট",
       SubTitle: "Markdown টেক্সট বা PNG চিত্র রপ্তানি করা যাবে",
@@ -169,7 +169,7 @@ const bn: PartialLocaleType = {
     InjectSystemPrompts: {
       Title: "সিস্টেম-লেভেল প্রম্পট যোগ করুন",
       SubTitle:
-        "প্রত্যেক বার্তায় একটি সিস্টেম প্রম্পট যোগ করুন যা ChatGPT এর অনুকরণ করবে",
+        "প্রত্যেক বার্তায় একটি সিস্টেম প্রম্পট যোগ করুন যা এআই সহকারীর অনুকরণ করবে",
     },
     InputTemplate: {
       Title: "ব্যবহারকারীর ইনপুট প্রিপ্রসেসিং",

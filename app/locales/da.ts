@@ -111,7 +111,7 @@ const da: PartialLocaleType = {
     Copy: "Kopiér alt",
     Download: "Download",
     MessageFromYou: "Fra dig",
-    MessageFromChatGPT: "Fra ChatGPT",
+    MessageFromChatGPT: "Fra AI-assistent",
     Share: "Del til ShareGPT",
     Format: {
       Title: "Filformat",

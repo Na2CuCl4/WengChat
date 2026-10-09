@@ -95,7 +95,7 @@ const cs: PartialLocaleType = {
     Download: "Stáhnout soubor",
     Share: "Sdílet na ShareGPT",
     MessageFromYou: "Uživatel",
-    MessageFromChatGPT: "ChatGPT",
+    MessageFromChatGPT: "AI asistent",
     Format: {
       Title: "Formát exportu",
       SubTitle: "Lze exportovat jako Markdown text nebo PNG obrázek",
@@ -169,7 +169,7 @@ const cs: PartialLocaleType = {
     InjectSystemPrompts: {
       Title: "Vložit systémové výzvy",
       SubTitle:
-        "Automaticky přidat systémovou výzvu simulující ChatGPT na začátek seznamu zpráv pro každý požadavek",
+        "Automaticky přidat systémovou výzvu simulující AI asistenta na začátek seznamu zpráv pro každý požadavek",
     },
     InputTemplate: {
       Title: "Předzpracování uživatelského vstupu",

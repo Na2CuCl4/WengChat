@@ -95,7 +95,7 @@ const tr: PartialLocaleType = {
     Download: "Dosyayı indir",
     Share: "ShareGPT'ye paylaş",
     MessageFromYou: "Kullanıcı",
-    MessageFromChatGPT: "ChatGPT",
+    MessageFromChatGPT: "Yapay Zeka Asistanı",
     Format: {
       Title: "Dışa aktarma formatı",
       SubTitle: "Markdown metni veya PNG resmi olarak dışa aktarabilirsiniz",
@@ -169,7 +169,8 @@ const tr: PartialLocaleType = {
     },
     InjectSystemPrompts: {
       Title: "Sistem Seviyesi İpucu Enjeksiyonu",
-      SubTitle: "Her isteğin başına ChatGPT benzeri bir sistem ipucu ekle",
+      SubTitle:
+        "Her isteğin başına yapay zeka asistanı benzeri bir sistem ipucu ekle",
     },
     InputTemplate: {
       Title: "Kullanıcı Girdisi Ön İşleme",

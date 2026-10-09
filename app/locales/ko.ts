@@ -110,7 +110,7 @@ const ko: PartialLocaleType = {
     Download: "파일 다운로드",
     Share: "ShareGPT에 공유",
     MessageFromYou: "사용자",
-    MessageFromChatGPT: "ChatGPT",
+    MessageFromChatGPT: "AI 어시스턴트",
     Format: {
       Title: "내보내기 형식",
       SubTitle: "Markdown 텍스트 또는 PNG 이미지로 내보낼 수 있습니다.",
@@ -187,7 +187,7 @@ const ko: PartialLocaleType = {
     InjectSystemPrompts: {
       Title: "시스템 수준 프롬프트 삽입",
       SubTitle:
-        "각 요청 메시지 목록의 시작 부분에 ChatGPT 시스템 프롬프트를 강제로 추가",
+        "각 요청 메시지 목록의 시작 부분에 AI 어시스턴트 시스템 프롬프트를 강제로 추가",
     },
     InputTemplate: {
       Title: "사용자 입력 전처리",

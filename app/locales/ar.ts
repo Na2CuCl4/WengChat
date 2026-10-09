@@ -95,7 +95,7 @@ const ar: PartialLocaleType = {
     Download: "تحميل الملف",
     Share: "مشاركة على ShareGPT",
     MessageFromYou: "المستخدم",
-    MessageFromChatGPT: "ChatGPT",
+    MessageFromChatGPT: "مساعد الذكاء الاصطناعي",
     Format: {
       Title: "تنسيق التصدير",
       SubTitle: "يمكنك تصدير النص كـ Markdown أو صورة PNG",
@@ -168,7 +168,7 @@ const ar: PartialLocaleType = {
     InjectSystemPrompts: {
       Title: "حقن الرسائل النصية النظامية",
       SubTitle:
-        "فرض إضافة رسالة نظامية تحاكي ChatGPT في بداية قائمة الرسائل لكل طلب",
+        "فرض إضافة رسالة نظامية تحاكي مساعد الذكاء الاصطناعي في بداية قائمة الرسائل لكل طلب",
     },
     InputTemplate: {
       Title: "معالجة الإدخال من قبل المستخدم",

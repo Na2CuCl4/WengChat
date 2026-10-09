@@ -95,7 +95,7 @@ const de: PartialLocaleType = {
     Download: "Datei herunterladen",
     Share: "Auf ShareGPT teilen",
     MessageFromYou: "Benutzer",
-    MessageFromChatGPT: "ChatGPT",
+    MessageFromChatGPT: "KI-Assistent",
     Format: {
       Title: "Exportformat",
       SubTitle: "Kann als Markdown-Text oder PNG-Bild exportiert werden",
@@ -171,7 +171,7 @@ const de: PartialLocaleType = {
     InjectSystemPrompts: {
       Title: "Systemweite Eingabeaufforderungen einfügen",
       SubTitle:
-        "Fügt jeder Nachricht am Anfang der Nachrichtenliste eine simulierte ChatGPT-Systemaufforderung hinzu",
+        "Fügt jeder Nachricht am Anfang der Nachrichtenliste eine simulierte KI-Assistenten-Systemaufforderung hinzu",
     },
     InputTemplate: {
       Title: "Benutzer-Eingabeverarbeitung",

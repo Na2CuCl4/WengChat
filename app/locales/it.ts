@@ -98,7 +98,7 @@ const it: PartialLocaleType = {
     Download: "Scarica file",
     Share: "Condividi su ShareGPT",
     MessageFromYou: "Utente",
-    MessageFromChatGPT: "ChatGPT",
+    MessageFromChatGPT: "Assistente IA",
     Format: {
       Title: "Formato di esportazione",
       SubTitle: "Puoi esportare come testo Markdown o immagine PNG",
@@ -175,7 +175,7 @@ const it: PartialLocaleType = {
     InjectSystemPrompts: {
       Title: "Inserisci suggerimenti di sistema",
       SubTitle:
-        "Aggiungi forzatamente un suggerimento di sistema simulato di ChatGPT all'inizio della lista dei messaggi per ogni richiesta",
+        "Aggiungi forzatamente un suggerimento di sistema simulato di assistente IA all'inizio della lista dei messaggi per ogni richiesta",
     },
     InputTemplate: {
       Title: "Preprocessing dell'input utente",

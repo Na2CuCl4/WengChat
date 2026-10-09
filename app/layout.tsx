@@ -10,7 +10,7 @@ import { getServerSideConfig } from "./config/server";
 
 export const metadata: Metadata = {
   title: "WengChat",
-  description: "Your personal ChatGPT Chat Bot.",
+  description: "Your personal AI assistant.",
   appleWebApp: {
     title: "WengChat",
     statusBarStyle: "default",

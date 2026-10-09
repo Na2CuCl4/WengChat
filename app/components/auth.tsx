@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Path } from "../constant";
 import { useAccessStore } from "../store";
 import Locale from "../locales";
-import BotIcon from "../icons/bot.svg";
+import BotIcon from "../icons/nextchat-bot.svg";
 import { getClientConfig } from "../config/client";
 import { PasswordInput } from "./ui-lib";
 import LeftIcon from "@/app/icons/left.svg";

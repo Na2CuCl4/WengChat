@@ -95,7 +95,7 @@ const jp: PartialLocaleType = {
     Download: "ファイルをダウンロード",
     Share: "ShareGPTに共有",
     MessageFromYou: "ユーザー",
-    MessageFromChatGPT: "ChatGPT",
+    MessageFromChatGPT: "AI アシスタント",
     Format: {
       Title: "エクスポート形式",
       SubTitle: "MarkdownテキストまたはPNG画像としてエクスポートできます",
@@ -169,7 +169,7 @@ const jp: PartialLocaleType = {
     InjectSystemPrompts: {
       Title: "システムプロンプトの注入",
       SubTitle:
-        "すべてのリクエストメッセージリストの先頭にChatGPTのシステムプロンプトを強制的に追加",
+        "すべてのリクエストメッセージリストの先頭にAI アシスタントのシステムプロンプトを強制的に追加",
     },
     InputTemplate: {
       Title: "ユーザー入力のプリプロセス",
