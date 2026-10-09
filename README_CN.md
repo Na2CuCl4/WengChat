@@ -40,6 +40,7 @@
 
 ## 更新日志
 
+- **v2.19.4**：适配正式 MinerU v1 API，同步上游图标和通用 AI 助手文案
 - **v2.19.3**：合并上游更改，支持 MinerU v0 和 v1 API，修复 Bug
 - **v2.19.2**：将本 Fork 的发行标识更名为 WengChat，继续兼容 NextChat 生态
 - **v2.19.1**：修复文件转换页面的 Bug，更新 MinerU 引擎至最新 API

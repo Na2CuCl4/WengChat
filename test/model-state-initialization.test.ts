@@ -58,7 +58,7 @@ test("startup repairs stale main and summary models after fresh server config", 
     defaultModel: "gpt-6-sol@OpenAI",
   };
   let failFirstRequest = true;
-  (global.fetch as jest.Mock).mockImplementation(async (url: string) => {
+  (global.fetch as jest.Mock).mockImplementation(async (url) => {
     if (url === "/api/config") {
       if (failFirstRequest) {
         failFirstRequest = false;

@@ -65,9 +65,9 @@ printf '%s %s\n' "$(git config user.email)" "$(cat "$HOME/.ssh/wengchat_signing.
 git config --local gpg.ssh.allowedSignersFile "$HOME/.ssh/wengchat_allowed_signers"
 ```
 
-### 每次发布（以 v2.19.3 为例）
+### 每次发布（以 v2.19.4 为例）
 
-先完成测试，将 `package.json`、`src-tauri/Cargo.toml`、`src-tauri/Cargo.lock` 和 `src-tauri/tauri.conf.json` 中的项目版本同步为 `2.19.3`，并提交本次发布的代码和文档。标签只包含目标提交的内容，未提交的修改不会进入 Release。
+先完成测试，将 `package.json`、`src-tauri/Cargo.toml`、`src-tauri/Cargo.lock` 和 `src-tauri/tauri.conf.json` 中的项目版本同步为 `2.19.4`，并提交本次发布的代码和文档。标签只包含目标提交的内容，未提交的修改不会进入 Release。
 
 切换到发布分支，确认工作区干净，且最新提交包含本次发布的全部修改；`git status --short` 应无输出，确认后再继续：
 
@@ -87,12 +87,12 @@ eval "$(ssh-agent -s)"
 
 ```bash
 ssh-add "$HOME/.ssh/wengchat_signing" &&
-git tag -s v2.19.3 -m "WengChat v2.19.3" HEAD &&
-git tag -v v2.19.3 &&
-git push --atomic origin main refs/tags/v2.19.3
+git tag -s v2.19.4 -m "WengChat v2.19.4" HEAD &&
+git tag -v v2.19.4 &&
+git push --atomic origin main refs/tags/v2.19.4
 ```
 
-推送后在 [GitHub Tags](https://github.com/Na2CuCl4/WengChat/tags) 确认 `v2.19.3` 显示 `Verified`，再创建 Release，选择**已经存在的 `v2.19.3`** 并填写 Release Note。后续版本替换上述版本号即可；不要在 Release 页面临时创建未签名标签，也不要用 `-f` 覆盖已发布标签。
+推送后在 [GitHub Tags](https://github.com/Na2CuCl4/WengChat/tags) 确认 `v2.19.4` 显示 `Verified`，再创建 Release，选择**已经存在的 `v2.19.4`** 并填写 Release Note。后续版本替换上述版本号即可；不要在 Release 页面临时创建未签名标签，也不要用 `-f` 覆盖已发布标签。
 
 Git 标签签名、Tauri updater 更新包签名、操作系统应用代码签名是不同机制；这里的 `Verified` 来自 Git 标签签名。发布 Release 会触发现有的 Docker 镜像和 Tauri 桌面应用构建工作流。
 
@@ -103,13 +103,13 @@ Git 标签签名、Tauri updater 更新包签名、操作系统应用代码签�
 - 编译
 
 ```bash
-docker build -t na2cucl4/wengchat:v2.19.3 .
+docker build -t na2cucl4/wengchat:v2.19.4 .
 ```
 
 - 重命名
 
 ```bash
-docker tag na2cucl4/wengchat:v2.19.3 na2cucl4/wengchat:latest
+docker tag na2cucl4/wengchat:v2.19.4 na2cucl4/wengchat:latest
 ```
 
 - 登录 Docker Hub
@@ -121,6 +121,6 @@ docker login
 - 发布
 
 ```bash
-docker push na2cucl4/wengchat:v2.19.3
+docker push na2cucl4/wengchat:v2.19.4
 docker push na2cucl4/wengchat:latest
 ```

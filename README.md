@@ -40,6 +40,7 @@ English / [简体中文](./README_CN.md) / [日本語](./README_JA.md) / [한국
 
 ## What's New
 
+- **v2.19.4**: Fit to the official MinerU v1 API, synced upstream icons and AI assistant wording
 - **v2.19.3**: Merged upstream changes, supported MinerU v0 and v1 APIs, fixed bugs
 - **v2.19.2**: Renamed this fork to WengChat while retaining NextChat ecosystem compatibility
 - **v2.19.1**: Fixed bugs on File Conversion page, updated MinerU engine to latest API
