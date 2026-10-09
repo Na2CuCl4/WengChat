@@ -99,10 +99,14 @@ docker compose up -d
 
 # Or start with optional services:
 docker compose --profile readfile up -d                   # with file reading service
-docker compose --profile mineru up -d                     # with stable MinerU v0 API (mineru-v0 also works)
-docker compose --profile mineru-v1 up -d                  # with preview MinerU v1 API
-docker compose --profile readfile --profile mineru up -d  # with file reading and stable MinerU
+docker compose --profile mineru up -d                     # with MinerU v0 API (mineru-v0 also works)
+docker compose --profile mineru-v1 up -d                  # with MinerU v1 API
+docker compose --profile readfile --profile mineru up -d  # with file reading and MinerU v0
 ```
+
+MinerU profiles use local images `mineru:3.4.5` (v0) and `mineru:4.0.11` (v1).
+Override the selected profile's image tag with `MINERU_TAG` in `.env`.
+Enable only one MinerU profile at a time: both services use the container name `mineru-api`.
 
 ### Docker
 

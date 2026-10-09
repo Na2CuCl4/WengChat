@@ -63,7 +63,7 @@ services:
 
   mineru-v0:
     <<: *mineru-common
-    image: mineru:${MINERU_TAG:-latest}
+    image: mineru:${MINERU_TAG:-3.4.5}
     profiles: ["mineru", "mineru-v0"]
     entrypoint: mineru-api
     command:
@@ -76,13 +76,12 @@ services:
 
   mineru-v1:
     <<: *mineru-common
-    image: mineru:${MINERU_TAG:-latest}
+    image: mineru:${MINERU_TAG:-4.0.11}
     profiles: ["mineru-v1"]
     entrypoint: mineru-kit
     command:
       api-server
       --host 0.0.0.0
       --port 8000
-      # --gpu-memory-utilization 0.5
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/v1/health || exit 1"]

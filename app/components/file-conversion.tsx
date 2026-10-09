@@ -220,15 +220,18 @@ function HealthCheckSection({
   }, [handleCheckHealth]);
 
   const healthSubTitle = health
-    ? `${Locale.FileConversion.HealthCheck.Version}: ${health.version}  |  ${
-        Locale.FileConversion.HealthCheck.Queueing
-      }: ${health.queued_tasks ?? "-"}  |  ${
-        Locale.FileConversion.HealthCheck.Processing
-      }: ${health.processing_tasks ?? "-"}  |  ${
-        Locale.FileConversion.HealthCheck.Completed
-      }: ${health.completed_tasks ?? "-"}  |  ${
-        Locale.FileConversion.HealthCheck.Failed
-      }: ${health.failed_tasks ?? "-"}`
+    ? `${Locale.FileConversion.HealthCheck.Version}: ${health.version}` +
+      (health.api_version === "v1"
+        ? ""
+        : `  |  ${Locale.FileConversion.HealthCheck.Queueing}: ${
+            health.queued_tasks ?? "-"
+          }  |  ${Locale.FileConversion.HealthCheck.Processing}: ${
+            health.processing_tasks ?? "-"
+          }  |  ${Locale.FileConversion.HealthCheck.Completed}: ${
+            health.completed_tasks ?? "-"
+          }  |  ${Locale.FileConversion.HealthCheck.Failed}: ${
+            health.failed_tasks ?? "-"
+          }`)
     : healthError
     ? healthError
     : "";
@@ -794,14 +797,14 @@ export function FileConversion() {
         const item = successFiles[i];
 
         if (item.content!.startsWith("blob:")) {
-          // MinerU: fetch zip blob, extract entries directly to root
-          // (MinerU zips already contain a root folder)
+          // Keep each document's relative assets together without filename collisions.
           const blob = await fetch(item.content!).then((r) => r.blob());
           const inZip = await JSZip.loadAsync(blob);
+          const folder = `${i + 1}-${item.name.replace(/\.[^.]+$/, "")}`;
           for (const [path, file] of Object.entries(inZip.files)) {
             if (file.dir) continue;
             const data = await file.async("uint8array");
-            outZip.file(path, data);
+            outZip.file(`${folder}/${path}`, data);
           }
         } else {
           // MarkItDown: add .md file directly to root

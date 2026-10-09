@@ -133,12 +133,13 @@ async function parseV0(
     effort: "effort",
     return_images: "return_images",
     response_format_zip: "response_format_zip",
-    maxPages: "end_page_id",
   };
   for (const [input, output] of Object.entries(fields)) {
     const value = formString(form, input);
     if (value) outForm.append(output, value);
   }
+  const maxPages = formString(form, "maxPages");
+  if (maxPages) outForm.append("end_page_id", String(Number(maxPages) - 1));
 
   const res = await fetch(`${baseUrl(server)}/file_parse`, {
     method: "POST",
@@ -227,7 +228,9 @@ async function parseV1(
   const fileEntry: Record<string, any> = {
     source: { type: "file_id", file_id: fileId },
   };
-  if (maxPages) fileEntry.page_range = `1~${maxPages}`;
+  if (maxPages && (await file.slice(0, 4).text()) === "%PDF") {
+    fileEntry.page_range = `1-${maxPages}`;
+  }
 
   const jobRes = await fetch(`${base}/v1/parse/jobs`, {
     method: "POST",
